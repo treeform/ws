@@ -37,7 +37,7 @@ proc nibbleToChar(value: int): char =
     else: char(value + ord('a') - 10)
 
 
-proc decodeHex*(str: string): string =
+proc decodeBase16*(str: string): string =
   ## base16 decode a string
   result = newString(str.len div 2)
   for i in 0 ..< result.len:
@@ -46,7 +46,7 @@ proc decodeHex*(str: string): string =
       nibbleFromChar(str[2 * i + 1]))
 
 
-proc encodeHex*(str: string): string =
+proc encodeBase16*(str: string): string =
   ## base61 encode a string
   result = newString(str.len * 2)
   for i, c in str:
@@ -70,7 +70,7 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
     ws.protocol = req.headers["sec-webSocket-protocol"].strip()
 
   let sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-  let acceptKey = decodeHex($sh).encode
+  let acceptKey = base64.encode(decodeBase16($sh))
 
   var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
   responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
