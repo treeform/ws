@@ -1,10 +1,10 @@
 # Simple WebSocket library for nim.
 
 
-* Based on the work by niv <n@e-ix.net> https://github.com/niv/websocket.nim
-* Also seee rfc https://tools.ietf.org/html/rfc6455
+* Based on the work by niv https://github.com/niv/websocket.nim
+* Also see rfc https://tools.ietf.org/html/rfc6455
 
-## Examples Echo Server
+## Example Echo Server:
 
 Example echo server, will repeat what you send it:
 
@@ -32,7 +32,7 @@ ws.send("hi")
 ![alt text](tests/echo.png "Echo server example")
 
 
-## Examples Chat Server
+## Example Chat Server:
 
 Example chart server, will send what you send to connected all clients.
 
