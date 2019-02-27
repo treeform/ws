@@ -225,7 +225,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   if header.len != 2:
     ws.readyState = Closed
-    raise newException(IOError, "socket closed")
+    raise newException(WebSocketError, "socket closed")
 
   let b0 = header[0].uint8
   let b1 = header[1].uint8
@@ -250,7 +250,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     # length must be 7+16 bits
     var lenstr = await ws.req.client.recv(2)
     if lenstr.len != 2:
-      raise newException(IOError, "Socket closed")
+      raise newException(WebSocketError, "Socket closed")
 
     finalLen = cast[ptr uint16](lenstr[0].addr)[].htons
 
@@ -258,7 +258,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     # length must be 7+64 bits
     var lenstr = await ws.req.client.recv(8)
     if lenstr.len != 8:
-      raise newException(IOError, "Socket closed")
+      raise newException(WebSocketError, "Socket closed")
     finalLen = cast[ptr uint32](lenstr[4].addr)[].htonl
 
   else:
@@ -272,12 +272,12 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     # read mask
     maskKey = await ws.req.client.recv(4)
     if maskKey.len != 4:
-      raise newException(IOError, "Socket closed")
+      raise newException(WebSocketError, "Socket closed")
 
   # read the data
   result.data = await ws.req.client.recv(int finalLen)
   if result.data.len != int finalLen:
-    raise newException(IOError, "Socket closed")
+    raise newException(WebSocketError, "Socket closed")
 
   if result.mask:
     # apply mask if we need too
@@ -287,10 +287,20 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
 proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
   ## wait for a string packet to come
-  let frame = await ws.recvFrame()
-  if frame.opcode == Text:
-    return frame.data
-  return ""
+  var frame = await ws.recvFrame()
+  if frame.opcode == Text or frame.opcode == Binary:
+    result = frame.data
+    # If there are more parits read and wait for them
+    while frame.fin != true:
+      frame = await ws.recvFrame()
+      if frame.opcode != Cont:
+        raise newException(WebSocketError, "Socket did not get continue frame")
+      result.add frame.data
+    return
+  else:
+    raise newException(WebSocketError,
+      "Socket got invalid frame, looking for Text or Binary")
+
 
 
 proc close*(ws: WebSocket) =
