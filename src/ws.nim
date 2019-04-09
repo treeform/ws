@@ -1,5 +1,5 @@
 import httpcore, asynchttpserver, asyncdispatch, nativesockets, asyncnet,
-  strutils, streams, random, securehash, base64
+  strutils, streams, random, securehash, base64, uri, strformat
 
 type
   ReadyState* = enum
@@ -15,6 +15,7 @@ type
     protocol*: string
     readyState*: ReadyState
 
+  WebSocketError* = object of Exception
 
 template `[]`(value: uint8, index: int): bool =
   ## get bits from uint8, uint8[2] gets 2nd bit
@@ -85,9 +86,41 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   return ws
 
 
-type
-  WebSocketError* = object of Exception
+proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
+  ## Creates a client
+  var ws = WebSocket()
+  ws.req = Request()
+  ws.req.client = newAsyncSocket()
 
+
+  let uri = parseUri(url)
+  var port = Port(9001)
+  if uri.scheme != "ws":
+    raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet.")
+  else:
+    port = Port(80)
+  if uri.port.len > 0:
+    port = Port(parseInt(uri.port))
+
+  await ws.req.client.connect(uri.hostname, port)
+  await ws.req.client.send &"""GET {url} HTTP/1.1
+Host: {uri.hostname}:{$port}
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: JCSoP2Cyk0cHZkKAit5DjA==
+Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+
+"""
+  var output = ""
+  while not output.endsWith("\c\L\c\L"):
+    output.add await ws.req.client.recv(1)
+
+  ws.readyState = Open
+  return ws
+
+
+type
   Opcode* = enum
     ## 4 bits. Defines the interpretation of the "Payload data".
     Cont = 0x0 ## denotes a continuation frame
@@ -190,7 +223,7 @@ proc encodeFrame*(f: Frame): string =
   return ret.readAll()
 
 
-proc sendPacket*(ws: WebSocket, text: string): Future[void] {.async.} =
+proc send*(ws: WebSocket, text: string): Future[void] {.async.} =
   ## write data to WebSocket
   var frame = encodeFrame((
     fin: true,
