@@ -1,6 +1,9 @@
 import httpcore, asynchttpserver, asyncdispatch, nativesockets, asyncnet,
   strutils, streams, random, securehash, base64, uri, strformat
 
+## TODO: Figure out how to access AsyncHttpClientBase.socket without include!
+include httpclient
+
 type
   ReadyState* = enum
     Connecting = 0 # The connection is not yet open.
@@ -92,29 +95,30 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
   ws.req = Request()
   ws.req.client = newAsyncSocket()
 
-
-  let uri = parseUri(url)
+  var uri = parseUri(url)
   var port = Port(9001)
-  if uri.scheme != "ws":
-    raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet.")
-  else:
-    port = Port(80)
+  case uri.scheme
+    of "wss":
+      uri.scheme = "https"
+      port = Port(443)
+    of "ws":
+      uri.scheme = "http"
+      port = Port(80)
+    else:
+      raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet.")
   if uri.port.len > 0:
     port = Port(parseInt(uri.port))
 
-  await ws.req.client.connect(uri.hostname, port)
-  await ws.req.client.send &"""GET {url} HTTP/1.1
-Host: {uri.hostname}:{$port}
-Connection: Upgrade
-Upgrade: websocket
-Sec-WebSocket-Version: 13
-Sec-WebSocket-Key: JCSoP2Cyk0cHZkKAit5DjA==
-Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
-
-"""
-  var output = ""
-  while not output.endsWith("\c\L\c\L"):
-    output.add await ws.req.client.recv(1)
+  var client = newAsyncHttpClient()
+  client.headers = newHttpHeaders({
+    "Connection": "Upgrade",
+    "Upgrade": "websocket",
+    "Sec-WebSocket-Version": "13",
+    "Sec-WebSocket-Key": "JCSoP2Cyk0cHZkKAit5DjA==",
+    "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+  })
+  var _ = await client.get(url)
+  ws.req.client = client.socket
 
   ws.readyState = Open
   return ws
@@ -185,7 +189,6 @@ proc encodeFrame*(f: Frame): string =
   else:
     b1 = 127u8
 
-  let b1unmasked = b1
   if f.mask:
     b1 = b1 or (1 shl 7)
 
@@ -333,7 +336,6 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
   else:
     raise newException(WebSocketError,
       "Socket got invalid frame, looking for Text or Binary")
-
 
 
 proc close*(ws: WebSocket) =

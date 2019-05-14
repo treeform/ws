@@ -1,6 +1,5 @@
 # Simple WebSocket library for nim.
 
-
 * Based on the work by niv https://github.com/niv/websocket.nim
 * Also see rfc https://tools.ietf.org/html/rfc6455
 
@@ -70,3 +69,19 @@ ws = new WebSocket("ws://localhost:9001/ws")
 ws.send("Good, you?")
 ```
 
+## Example client socket:
+
+Instead of being the server you are the client connecting to some other server:
+
+```nim
+var ws = await newWebsocket("ws://127.0.0.1:9001/ws")
+echo await ws.receiveStrPacket()
+await ws.send("Hi, how are you?")
+echo await ws.receiveStrPacket()
+ws.close()
+```
+
+SSL is also supported:
+```nim
+var ws = await newWebsocket("wss://echo.websocket.org")
+```

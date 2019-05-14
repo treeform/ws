@@ -9,7 +9,6 @@ assert 0b00010000u8[4] == false
 assert 0b00000001u8[7] == true
 assert 0b01111110u8[7] == false
 
-
 assert nibbleFromChar('F') == 15
 assert nibbleFromChar('a') == 10
 assert nibbleFromChar('5') == 5
@@ -20,8 +19,8 @@ assert nibbleToChar(10) == 'a'
 assert nibbleToChar(5) == '5'
 assert nibbleToChar(0) == '0'
 
-assert encodeHex("hi how are you?") == "686920686f772061726520796f753f"
-assert decodeHex("686920686f772061726520796f753f") == "hi how are you?"
+assert encodeBase16("hi how are you?") == "686920686f772061726520796f753f"
+assert decodeBase16("686920686f772061726520796f753f") == "hi how are you?"
 
 block: # 7bit length
   assert encodeFrame((
