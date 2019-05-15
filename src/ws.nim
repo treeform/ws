@@ -1,8 +1,5 @@
-import httpcore, asynchttpserver, asyncdispatch, nativesockets, asyncnet,
-  strutils, streams, random, securehash, base64, uri, strformat
-
-## TODO: Figure out how to access AsyncHttpClientBase.socket without include!
-include httpclient
+import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets, asyncnet,
+  strutils, streams, random, std/sha1, base64, uri, strformat
 
 type
   ReadyState* = enum
@@ -118,7 +115,7 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
     "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
   var _ = await client.get(url)
-  ws.req.client = client.socket
+  ws.req.client = client.getSocket()
 
   ws.readyState = Open
   return ws
@@ -179,7 +176,6 @@ proc encodeFrame*(f: Frame): string =
   ret.write(b0)
 
   # Payload length can be 7 bits, 7+16 bits, or 7+64 bits
-
   var b1 = 0u8 # 1st byte: playload len start and mask bit
 
   if f.data.len <= 125:
@@ -326,7 +322,7 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
   var frame = await ws.recvFrame()
   if frame.opcode == Text or frame.opcode == Binary:
     result = frame.data
-    # If there are more parits read and wait for them
+    # If there are more parts read and wait for them
     while frame.fin != true:
       frame = await ws.recvFrame()
       if frame.opcode != Cont:
