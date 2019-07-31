@@ -23,6 +23,8 @@ proc cb(req: Request) {.async.} =
 waitFor server.serve(Port(9001), cb)
 ```
 
+And then in the browser type this JavaScript:
+
 ```js
 ws = new WebSocket("ws://localhost:9001/ws")
 ws.send("hi")
