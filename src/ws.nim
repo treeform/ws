@@ -1,5 +1,5 @@
 import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets,
-  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat
+  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat, httpcore
 
 type
   ReadyState* = enum
@@ -63,12 +63,16 @@ proc genMaskKey*(): array[4, char] =
 
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request
+  if not req.headers.hasKey("sec-websocket-version"):
+    await req.respond(Http404, "Not Found")
+    raise newException(WebSocketError, "Not a valid websocket handshake.")
+
   var ws = WebSocket()
   ws.req = req
   ws.version = parseInt(req.headers["sec-webSocket-version"])
   ws.key = req.headers["sec-webSocket-key"].strip()
   if req.headers.hasKey("sec-webSocket-protocol"):
-    ws.protocol = req.headers["sec-webSocket-protocol"].strip()
+    ws.protocol = req.headers["sec-websocket-protocol"].strip()
 
   let sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
   let acceptKey = base64.encode(decodeBase16($sh))
