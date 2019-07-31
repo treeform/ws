@@ -90,11 +90,12 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   return ws
 
 
-proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
-  ## Creates a client
+proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
+  ## Creates a new WebSocket connection, protocol is optinal, "" means no protocol
   var ws = WebSocket()
   ws.req = Request()
   ws.req.client = newAsyncSocket()
+  ws.protocol = protocol
 
   var uri = parseUri(url)
   var port = Port(9001)
@@ -119,6 +120,8 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
     "Sec-WebSocket-Key": "JCSoP2Cyk0cHZkKAit5DjA==",
     "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
+  if ws.protocol != "":
+    client.headers["Sec-WebSocket-Protocol"] = ws.protocol
   var _ = await client.get(url)
   ws.req.client = client.getSocket()
 

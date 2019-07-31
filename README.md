@@ -13,7 +13,7 @@ import ws, asyncdispatch, asynchttpserver
 var server = newAsyncHttpServer()
 proc cb(req: Request) {.async.} =
   if req.url.path == "/ws":
-    var ws = await newWebsocket(req)
+    var ws = await newWebSocket(req)
     await ws.sendPacket("Welcome to simple echo server")
     while ws.readyState == Open:
       let packet = await ws.receiveStrPacket()
@@ -43,7 +43,7 @@ var connections = newSeq[WebSocket]()
 proc cb(req: Request) {.async, gcsafe.} =
   if req.url.path == "/ws":
     try:
-      var ws = await newWebsocket(req)
+      var ws = await newWebSocket(req)
       connections.add ws
       await ws.sendPacket("Welcome to simple chat server")
       while ws.readyState == Open:
@@ -76,7 +76,7 @@ ws.send("Good, you?")
 Instead of being the server you are the client connecting to some other server:
 
 ```nim
-var ws = await newWebsocket("ws://127.0.0.1:9001/ws")
+var ws = await newWebSocket("ws://127.0.0.1:9001/ws")
 echo await ws.receiveStrPacket()
 await ws.send("Hi, how are you?")
 echo await ws.receiveStrPacket()
@@ -85,5 +85,10 @@ ws.close()
 
 SSL is also supported:
 ```nim
-var ws = await newWebsocket("wss://echo.websocket.org")
+var ws = await newWebSocket("wss://echo.websocket.org")
+```
+
+You can also pass a protocol
+```nim
+var ws = await newWebsocket("wss://echo.websocket.org", protocol = "alpha")
 ```

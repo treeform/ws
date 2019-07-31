@@ -6,7 +6,7 @@ var connections = newSeq[WebSocket]()
 proc cb(req: Request) {.async, gcsafe.} =
   if req.url.path == "/ws":
     try:
-      var ws = await newWebsocket(req)
+      var ws = await newWebSocket(req)
       connections.add ws
       await ws.send("Welcome to simple chat server")
       while ws.readyState == Open:
