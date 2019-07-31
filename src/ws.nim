@@ -231,14 +231,15 @@ proc encodeFrame*(f: Frame): string =
   return ret.readAll()
 
 
-proc send*(ws: WebSocket, text: string): Future[void] {.async.} =
+proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
+    Future[void] {.async.} =
   ## write data to WebSocket
   var frame = encodeFrame((
     fin: true,
     rsv1: false,
     rsv2: false,
     rsv3: false,
-    opcode: Opcode.Text,
+    opcode: opcode,
     mask: false,
     data: text
   ))
@@ -326,24 +327,74 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
       result.data[i] = (result.data[i].uint8 xor maskKey[i mod 4].uint8).char
 
 
-proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
+proc receivePacket*(ws: WebSocket): Future[(Opcode, string)] {.async.} =
   ## wait for a string packet to come
   var frame = await ws.recvFrame()
-  if frame.opcode == Text or frame.opcode == Binary:
-    result = frame.data
-    # If there are more parts read and wait for them
-    while frame.fin != true:
-      frame = await ws.recvFrame()
-      if frame.opcode != Cont:
-        raise newException(WebSocketError,
-            "Socket did not get continue frame")
-      result.add frame.data
-    return
-  elif frame.opcode == Close:
-    raise newException(WebSocketError, "Socket closed")
-  else:
-    raise newException(WebSocketError,
-      "Socket got invalid frame, looking for Text or Binary")
+  result[0] = frame.opcode
+  result[1] = frame.data
+  # If there are more parts read and wait for them
+  while frame.fin != true:
+    frame = await ws.recvFrame()
+    if frame.opcode != Cont:
+      raise newException(WebSocketError, "Socket closed")
+    result[1].add frame.data
+  return
+
+
+proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
+  ## wait for a string packet to come
+  let (opcode, data) = await ws.receivePacket()
+  case opcode:
+    of Text:
+      return data
+    of Binary:
+      raise newException(WebSocketError,
+        "Got binary packet when looking for a string packet")
+    of Ping:
+      await ws.send(data, Pong)
+      echo "got ping and replied"
+    of Pong:
+      discard
+    of Cont:
+      discard
+    of Close:
+      ws.readyState = Closed
+      raise newException(WebSocketError, "Socket closed")
+
+
+proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
+  ## wait for a string packet to come
+  let (opcode, data) = await ws.receivePacket()
+  case opcode:
+    of Text:
+      raise newException(WebSocketError,
+        "Got text packet when looking for a binary packet")
+    of Binary:
+      return cast[seq[byte]](data)
+    of Ping:
+      await ws.send(data, Pong)
+    of Pong:
+      discard
+    of Cont:
+      discard
+    of Close:
+      ws.readyState = Closed
+      raise newException(WebSocketError,
+        "Socket got invalid frame, looking for Text or Binary")
+
+
+proc ping*(ws: WebSocket, data = "") {.async.} =
+  ## Sends a ping to the other end, both server and client can send a ping
+  ## data is optional
+  await ws.send(data, Ping)
+
+
+proc setupPings*(ws: WebSocket, seconds: float) =
+  proc pingLoop() {.async.} =
+    while ws.readyState != Closed:
+      await ws.ping()
+      await sleepAsync(1000.0 * seconds)
+  asyncCheck pingLoop()
 
 
 proc close*(ws: WebSocket) =
