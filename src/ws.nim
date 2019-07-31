@@ -339,6 +339,8 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
             "Socket did not get continue frame")
       result.add frame.data
     return
+  elif frame.opcode == Close:
+    raise newException(WebSocketError, "Socket closed")
   else:
     raise newException(WebSocketError,
       "Socket got invalid frame, looking for Text or Binary")
