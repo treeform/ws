@@ -35,7 +35,7 @@ ws.send("hi")
 
 ## Example Chat Server:
 
-Example chart server, will send what you send to connected all clients.
+Example chat server, will send what you send to connected all clients.
 
 ```nim
 var connections = newSeq[WebSocket]()
