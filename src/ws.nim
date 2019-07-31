@@ -1,12 +1,12 @@
-import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets, asyncnet,
-  strutils, streams, random, std/sha1, base64, uri, strformat
+import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets,
+  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat, httpcore
 
 type
   ReadyState* = enum
-    Connecting = 0 # The connection is not yet open.
-    Open = 1 # The connection is open and ready to communicate.
-    Closing = 2 # The connection is in the process of closing.
-    Closed = 3 # The connection is closed or couldn't be opened.
+    Connecting = 0            # The connection is not yet open.
+    Open = 1                  # The connection is open and ready to communicate.
+    Closing = 2               # The connection is in the process of closing.
+    Closed = 3                # The connection is closed or couldn't be opened.
 
   WebSocket* = ref object
     req*: Request
@@ -63,12 +63,16 @@ proc genMaskKey*(): array[4, char] =
 
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request
+  if not req.headers.hasKey("sec-websocket-version"):
+    await req.respond(Http404, "Not Found")
+    raise newException(WebSocketError, "Not a valid websocket handshake.")
+
   var ws = WebSocket()
   ws.req = req
   ws.version = parseInt(req.headers["sec-webSocket-version"])
   ws.key = req.headers["sec-webSocket-key"].strip()
   if req.headers.hasKey("sec-webSocket-protocol"):
-    ws.protocol = req.headers["sec-webSocket-protocol"].strip()
+    ws.protocol = req.headers["sec-websocket-protocol"].strip()
 
   let sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
   let acceptKey = base64.encode(decodeBase16($sh))
@@ -86,11 +90,12 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   return ws
 
 
-proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
-  ## Creates a client
+proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
+  ## Creates a new WebSocket connection, protocol is optinal, "" means no protocol
   var ws = WebSocket()
   ws.req = Request()
   ws.req.client = newAsyncSocket()
+  ws.protocol = protocol
 
   var uri = parseUri(url)
   var port = Port(9001)
@@ -102,7 +107,8 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
       uri.scheme = "http"
       port = Port(80)
     else:
-      raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet.")
+      raise newException(WebSocketError,
+          &"Scheme {uri.scheme} not supported yet.")
   if uri.port.len > 0:
     port = Port(parseInt(uri.port))
 
@@ -114,6 +120,8 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
     "Sec-WebSocket-Key": "JCSoP2Cyk0cHZkKAit5DjA==",
     "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
+  if ws.protocol != "":
+    client.headers["Sec-WebSocket-Protocol"] = ws.protocol
   var _ = await client.get(url)
   ws.req.client = client.getSocket()
 
@@ -124,13 +132,13 @@ proc newWebSocket*(url: string): Future[WebSocket] {.async.} =
 type
   Opcode* = enum
     ## 4 bits. Defines the interpretation of the "Payload data".
-    Cont = 0x0 ## denotes a continuation frame
-    Text = 0x1 ## denotes a text frame
-    Binary = 0x2 ## denotes a binary frame
+    Cont = 0x0                ## denotes a continuation frame
+    Text = 0x1                ## denotes a text frame
+    Binary = 0x2              ## denotes a binary frame
     # 3-7 are reserved for further non-control frames
-    Close = 0x8 ## denotes a connection close
-    Ping = 0x9 ## denotes a ping
-    Pong = 0xa ## denotes a pong
+    Close = 0x8               ## denotes a connection close
+    Ping = 0x9                ## denotes a ping
+    Pong = 0xa                ## denotes a pong
     # B-F are reserved for further control frames
 
   #[
@@ -159,8 +167,8 @@ type
     rsv2: bool
     rsv3: bool
     opcode: Opcode ## Defines the interpretation of the "Payload data".
-    mask: bool ## Defines whether the "Payload data" is masked.
-    data: string ## Payload data
+    mask: bool                ## Defines whether the "Payload data" is masked.
+    data: string              ## Payload data
 
 
 proc encodeFrame*(f: Frame): string =
@@ -176,7 +184,8 @@ proc encodeFrame*(f: Frame): string =
   ret.write(b0)
 
   # Payload length can be 7 bits, 7+16 bits, or 7+64 bits
-  var b1 = 0u8 # 1st byte: playload len start and mask bit
+  # 1st byte: playload len start and mask bit
+  var b1 = 0u8
 
   if f.data.len <= 125:
     b1 = f.data.len.uint8
@@ -263,7 +272,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   let b1 = header[1].uint8
 
   # read the flags and fin from the header
-  result.fin  = b0[0]
+  result.fin = b0[0]
   result.rsv1 = b0[1]
   result.rsv2 = b0[2]
   result.rsv3 = b0[3]
@@ -326,7 +335,8 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
     while frame.fin != true:
       frame = await ws.recvFrame()
       if frame.opcode != Cont:
-        raise newException(WebSocketError, "Socket did not get continue frame")
+        raise newException(WebSocketError,
+            "Socket did not get continue frame")
       result.add frame.data
     return
   else:
