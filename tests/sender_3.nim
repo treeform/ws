@@ -19,7 +19,6 @@ proc main() {.async.} =
 
   echo "all sockets opened"
 
-  # depended I/O
   asyncCheck ws1.doStuff(1, "you are first")
   asyncCheck ws2.doStuff(2, "you are second")
   asyncCheck ws3.doStuff(3, "you are third")
