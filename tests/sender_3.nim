@@ -17,7 +17,7 @@ proc main() {.async.} =
     ws2 = await newWebSocket("wss://echo.websocket.org")
     ws3 = await newWebSocket("wss://echo.websocket.org")
 
-  echo "all sockets opended"
+  echo "all sockets opened"
 
   # depended I/O
   asyncCheck ws1.doStuff(1, "you are first")
