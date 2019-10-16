@@ -14,10 +14,10 @@ var server = newAsyncHttpServer()
 proc cb(req: Request) {.async.} =
   if req.url.path == "/ws":
     var ws = await newWebSocket(req)
-    await ws.sendPacket("Welcome to simple echo server")
+    await ws.send("Welcome to simple echo server")
     while ws.readyState == Open:
       let packet = await ws.receiveStrPacket()
-      await ws.sendPacket(packet)
+      await ws.send(packet)
   await req.respond(Http200, "Hello World")
 
 waitFor server.serve(Port(9001), cb)
@@ -38,6 +38,8 @@ ws.send("hi")
 Example chat server, will send what you send to connected all clients.
 
 ```nim
+import ws, asyncdispatch, asynchttpserver
+
 var connections = newSeq[WebSocket]()
 
 proc cb(req: Request) {.async, gcsafe.} =
@@ -45,12 +47,12 @@ proc cb(req: Request) {.async, gcsafe.} =
     try:
       var ws = await newWebSocket(req)
       connections.add ws
-      await ws.sendPacket("Welcome to simple chat server")
+      await ws.send("Welcome to simple chat server")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
         for other in connections:
           if other.readyState == Open:
-            asyncCheck other.sendPacket(packet)
+            asyncCheck other.send(packet)
     except IOError:
       echo "socket closed"
   await req.respond(Http200, "Hello World")
