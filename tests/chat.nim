@@ -1,6 +1,5 @@
 import ws, asyncdispatch, asynchttpserver
 
-
 var connections = newSeq[WebSocket]()
 
 proc cb(req: Request) {.async, gcsafe.} =
@@ -14,7 +13,7 @@ proc cb(req: Request) {.async, gcsafe.} =
         for other in connections:
           if other.readyState == Open:
             asyncCheck other.send(packet)
-    except IOError, WebSocketError:
+    except WebSocketError:
       echo "socket closed:", getCurrentExceptionMsg()
   await req.respond(Http200, "Hello World")
 
