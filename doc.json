@@ -1,0 +1,107 @@
+{
+    "orig": "/p/andrelytics/libs/ws/src/ws.nim",
+    "nimble": "ws",
+    "moduleDescription": "",
+    "entries": [
+        {
+            "name": "ReadyState",
+            "type": "skType",
+            "line": 6,
+            "col": 14,
+            "code": "ReadyState = enum\n  Connecting = 0, Open = 1, Closing = 2, Closed = 3"
+        },
+        {
+            "name": "WebSocket",
+            "type": "skType",
+            "line": 12,
+            "col": 13,
+            "code": "WebSocket = ref object\n  req*: Request\n  version*: int\n  key*: string\n  protocol*: string\n  readyState*: ReadyState\n"
+        },
+        {
+            "name": "WebSocketError",
+            "type": "skType",
+            "line": 19,
+            "col": 18,
+            "code": "WebSocketError = object of Exception"
+        },
+        {
+            "name": "newWebSocket",
+            "type": "skProc",
+            "line": 66,
+            "col": 0,
+            "description": "Creates a new socket from a request.",
+            "code": "proc newWebSocket(req: Request): Future[WebSocket] {.async, raises: [WebSocketError],\n    tags: [].}"
+        },
+        {
+            "name": "Opcode",
+            "type": "skType",
+            "line": 144,
+            "col": 10,
+            "description": "4 bits. Defines the interpretation of the &quot;Payload data&quot;.",
+            "code": "Opcode = enum\n  Cont = 0x00000000,            ## denotes a continuation frame\n  Text = 0x00000001,            ## denotes a text frame\n  Binary = 0x00000002,          ## denotes a binary frame\n  Close = 0x00000008,           ## denotes a connection close\n  Ping = 0x00000009,            ## denotes a ping\n  Pong = 0x0000000A             ## denotes a pong"
+        },
+        {
+            "name": "send",
+            "type": "skProc",
+            "line": 245,
+            "col": 0,
+            "description": "This is the main method used to send data via this WebSocket.",
+            "code": "proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void] {.async,\n    raises: [Defect, IOError, OSError, WebSocketError],\n    tags: [WriteIOEffect, ReadIOEffect].}"
+        },
+        {
+            "name": "receivePacket",
+            "type": "skProc",
+            "line": 348,
+            "col": 0,
+            "description": "Wait for a any packet to comein.",
+            "code": "proc receivePacket(ws: WebSocket): Future[(Opcode, string)] {.async,\n    raises: [WebSocketError], tags: [].}"
+        },
+        {
+            "name": "receiveStrPacket",
+            "type": "skProc",
+            "line": 362,
+            "col": 0,
+            "description": "Wait only for a string packet to come. Errors out on Binary packets.",
+            "code": "proc receiveStrPacket(ws: WebSocket): Future[string] {.async,\n    raises: [WebSocketError], tags: [].}"
+        },
+        {
+            "name": "receiveBinaryPacket",
+            "type": "skProc",
+            "line": 383,
+            "col": 0,
+            "description": "Wait only for a binary packet to come. Errors out on string packets.",
+            "code": "proc receiveBinaryPacket(ws: WebSocket): Future[seq[byte]] {.async,\n    raises: [WebSocketError], tags: [].}"
+        },
+        {
+            "name": "ping",
+            "type": "skProc",
+            "line": 403,
+            "col": 0,
+            "description": "Sends a ping to the other end, both server and client can send a ping. Data is optional.",
+            "code": "proc ping(ws: WebSocket; data = \"\") {.async, raises: [], tags: [].}"
+        },
+        {
+            "name": "setupPings",
+            "type": "skProc",
+            "line": 409,
+            "col": 0,
+            "code": "proc setupPings(ws: WebSocket; seconds: float) {.raises: [], tags: [].}"
+        },
+        {
+            "name": "hangup",
+            "type": "skProc",
+            "line": 417,
+            "col": 0,
+            "description": "Closes the Socket without sending a close packet",
+            "code": "proc hangup(ws: WebSocket) {.raises: [], tags: [].}"
+        },
+        {
+            "name": "close",
+            "type": "skProc",
+            "line": 428,
+            "col": 0,
+            "description": "Close the Socket, sends close packet",
+            "code": "proc close(ws: WebSocket) {.raises: [], tags: [].}"
+        }
+    ]
+}

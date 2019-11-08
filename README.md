@@ -150,7 +150,7 @@ WebSocketError = object of Exception
 Creates a new socket from a request.
 
 ```nim
-proc newWebSocket(req: Request): Future[WebSocket] {.async, raises: [WebSocketError, ValueError, KeyError].}
+proc newWebSocket(req: Request): Future[WebSocket] {.async, raises: [WebSocketError].}
 ```
 
 ## **type** Opcode
@@ -169,15 +169,15 @@ Opcode = enum
 
 ## **proc** send
 
-This is the main method used to send data via this WebSocket.
+This is the main method used to send data via this WebSocket.  
 
 ```nim
-proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void] {.async, raises: [Defect, IOError, OSError], tags: [WriteIOEffect, ReadIOEffect].}
+proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void] {.async, raises: [WebSocketError], tags: [WriteIOEffect, ReadIOEffect].}
 ```
 
 ## **proc** receivePacket
 
-Wait for a any packet to comein.
+Wait for a string or binary packet to come in.
 
 ```nim
 proc receivePacket(ws: WebSocket): Future[(Opcode, string)] {.async, raises: [WebSocketError].}
@@ -219,12 +219,12 @@ proc setupPings(ws: WebSocket; seconds: float)
 Closes the Socket without sending a close packet
 
 ```nim
-proc hangup(ws: WebSocket) {.raises: [SslError, OSError].}
+proc hangup(ws: WebSocket) 
 ```
 
 ## **proc** close
 
-Close the Socket, sends close packet
+Close the Socket, sends close packet.
 
 ```nim
 proc close(ws: WebSocket) 

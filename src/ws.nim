@@ -1,5 +1,6 @@
 import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets,
-  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat, httpcore
+  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat, 
+  httpcore, net
 
 type
   ReadyState* = enum
@@ -64,31 +65,40 @@ proc genMaskKey(): array[4, char] =
 
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
-  if not req.headers.hasKey("sec-websocket-version"):
-    await req.respond(Http404, "Not Found")
-    raise newException(WebSocketError, "Not a valid websocket handshake.")
+  try:
+    if not req.headers.hasKey("sec-websocket-version"):
+      await req.respond(Http404, "Not Found")
+      raise newException(WebSocketError, "Not a valid websocket handshake.")
 
-  var ws = WebSocket()
-  ws.req = req
-  ws.version = parseInt(req.headers["sec-webSocket-version"])
-  ws.key = req.headers["sec-webSocket-key"].strip()
-  if req.headers.hasKey("sec-webSocket-protocol"):
-    ws.protocol = req.headers["sec-websocket-protocol"].strip()
+    var ws = WebSocket()
+    ws.req = req
+    ws.version = parseInt(req.headers["sec-webSocket-version"])
+    ws.key = req.headers["sec-webSocket-key"].strip()
+    if req.headers.hasKey("sec-webSocket-protocol"):
+      ws.protocol = req.headers["sec-websocket-protocol"].strip()
 
-  let sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-  let acceptKey = base64.encode(decodeBase16($sh))
+    let 
+      sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+      acceptKey = base64.encode(decodeBase16($sh))
 
-  var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
-  responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
-  responce.add("Connection: Upgrade\c\L")
-  responce.add("Upgrade: webSocket\c\L")
-  if not ws.protocol.len == 0:
-    responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
-  responce.add "\c\L"
+    var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
+    responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
+    responce.add("Connection: Upgrade\c\L")
+    responce.add("Upgrade: webSocket\c\L")
+    if not ws.protocol.len == 0:
+      responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
+    responce.add "\c\L"
 
-  await ws.req.client.send(responce)
-  ws.readyState = Open
-  return ws
+    await ws.req.client.send(responce)
+    ws.readyState = Open
+    return ws
+
+  except ValueError, KeyError:
+    # Wrap all exceptions in a WebSocketError so its easy to catch
+    raise newException(
+      WebSocketError, 
+      "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
+    )
 
 
 proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
@@ -234,25 +244,32 @@ proc encodeFrame(f: Frame): string =
 
 proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
     Future[void] {.async.} =
-  ## This is the main method used to send data via this WebSocket.
-  var frame = encodeFrame((
-    fin: true,
-    rsv1: false,
-    rsv2: false,
-    rsv3: false,
-    opcode: opcode,
-    mask: false,
-    data: text
-  ))
-  const maxSize = 1024*1024
-  # Send stuff in 1 megabyte chunks to prevent IOErrors.
-  # This really large packets.
-  var i = 0
-  while i < frame.len:
-    let data = frame[i ..< min(frame.len, i + maxSize)]
-    await ws.req.client.send(data)
-    i += maxSize
-    await sleepAsync(1)
+  ## This is the main method used to send data via this WebSocket.  
+  try:
+    var frame = encodeFrame((
+      fin: true,
+      rsv1: false,
+      rsv2: false,
+      rsv3: false,
+      opcode: opcode,
+      mask: false,
+      data: text
+    ))
+    const maxSize = 1024*1024
+    # Send stuff in 1 megabyte chunks to prevent IOErrors.
+    # This really large packets.
+    var i = 0
+    while i < frame.len:
+      let data = frame[i ..< min(frame.len, i + maxSize)]  
+      await ws.req.client.send(data)  
+      i += maxSize
+      await sleepAsync(1)
+  except Defect, IOError, OSError:
+    # Wrap all exceptions in a WebSocketError so its easy to catch
+    raise newException(
+      WebSocketError, 
+      "Failed to send data: " & getCurrentExceptionMsg()
+    )
 
 
 proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
@@ -329,7 +346,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
 
 proc receivePacket*(ws: WebSocket): Future[(Opcode, string)] {.async.} =
-  ## Wait for a any packet to comein.
+  ## Wait for a string or binary packet to come in.
   var frame = await ws.recvFrame()
   result[0] = frame.opcode
   result[1] = frame.data
@@ -400,11 +417,16 @@ proc setupPings*(ws: WebSocket, seconds: float) =
 proc hangup*(ws: WebSocket) =
   ## Closes the Socket without sending a close packet
   ws.readyState = Closed
-  ws.req.client.close()
+  try:
+    ws.req.client.close()
+  except SslError, OSError:
+    # Nothing really we can do
+    # we are trying to close it anyways
+    discard
 
 
 proc close*(ws: WebSocket) =
-  ## Close the Socket, sends close packet
+  ## Close the Socket, sends close packet.
   ws.readyState = Closed
   proc close() {.async.} =
     await ws.send("", Close)
