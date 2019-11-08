@@ -39,7 +39,7 @@ proc nibbleToChar(value: int): char =
     else: char(value + ord('a') - 10)
 
 
-proc decodeBase16*(str: string): string =
+proc decodeBase16(str: string): string =
   ## Base16 decode a string.
   result = newString(str.len div 2)
   for i in 0 ..< result.len:
@@ -48,7 +48,7 @@ proc decodeBase16*(str: string): string =
       nibbleFromChar(str[2 * i + 1]))
 
 
-proc encodeBase16*(str: string): string =
+proc encodeBase16(str: string): string =
   ## Base61 encode a string.
   result = newString(str.len * 2)
   for i, c in str:
@@ -56,7 +56,7 @@ proc encodeBase16*(str: string): string =
     result[i * 2 + 1] = nibbleToChar(ord(c) and 0x0f)
 
 
-proc genMaskKey*(): array[4, char] =
+proc genMaskKey(): array[4, char] =
   ## Generates a random key of 4 random chars.
   proc r(): char = char(rand(256))
   [r(), r(), r(), r()]
@@ -162,7 +162,7 @@ type
   |                     Payload Data continued ...                |
   +---------------------------------------------------------------+
   ]#
-  Frame* = tuple
+  Frame = tuple
     fin: bool      ## Indicates that this is the final fragment in a message.
     rsv1: bool     ## MUST be 0 unless negotiated that defines meanings
     rsv2: bool
@@ -172,7 +172,7 @@ type
     data: string   ## Payload data
 
 
-proc encodeFrame*(f: Frame): string =
+proc encodeFrame(f: Frame): string =
   ## Encodes a frame into a string buffer.
   ## See https://tools.ietf.org/html/rfc6455#section-5.2
 
