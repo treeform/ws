@@ -219,7 +219,7 @@ proc setupPings(ws: WebSocket; seconds: float)
 Closes the Socket without sending a close packet
 
 ```nim
-proc hangup(ws: WebSocket) 
+proc hangup(ws: WebSocket) {.raises: [WebSocketError].}
 ```
 
 ## **proc** close

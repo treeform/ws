@@ -419,10 +419,11 @@ proc hangup*(ws: WebSocket) =
   ws.readyState = Closed
   try:
     ws.req.client.close()
-  except SslError, OSError:
-    # Nothing really we can do
-    # we are trying to close it anyways
-    discard
+  except:
+    raise newException(
+      WebSocketError, 
+      "Failed to hangup socket " & getCurrentExceptionMsg()
+    )
 
 
 proc close*(ws: WebSocket) =
