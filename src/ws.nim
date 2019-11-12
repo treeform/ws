@@ -66,16 +66,16 @@ proc genMaskKey(): array[4, char] =
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
   try:
-    if not req.headers.hasKey("sec-websocket-version"):
+    if not req.headers.hasKey("Sec-WebSocket-Version"):
       await req.respond(Http404, "Not Found")
       raise newException(WebSocketError, "Not a valid websocket handshake.")
 
     var ws = WebSocket()
     ws.req = req
-    ws.version = parseInt(req.headers["sec-webSocket-version"])
-    ws.key = req.headers["sec-webSocket-key"].strip()
-    if req.headers.hasKey("sec-webSocket-protocol"):
-      ws.protocol = req.headers["sec-websocket-protocol"].strip()
+    ws.version = parseInt(req.headers["Sec-WebSocket-Version"])
+    ws.key = req.headers["Sec-WebSocket-Key"].strip()
+    if req.headers.hasKey("Sec-WebSocket-Protocol"):
+      ws.protocol = req.headers["Sec-WebSocket-Protocol"].strip()
 
     let 
       sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
@@ -85,7 +85,8 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
     responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
     responce.add("Connection: Upgrade\c\L")
     responce.add("Upgrade: webSocket\c\L")
-    if not ws.protocol.len == 0:
+
+    if ws.protocol != "":
       responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
     responce.add "\c\L"
 
@@ -133,7 +134,10 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
   })
   if ws.protocol != "":
     client.headers["Sec-WebSocket-Protocol"] = ws.protocol
-  var _ = await client.get(url)
+  var res = await client.get(url)
+  if ws.protocol != "":
+    if ws.protocol != res.headers["Sec-WebSocket-Protocol"]:
+      raise newException(WebSocketError, "Protocols don't match")
   ws.req.client = client.getSocket()
 
   ws.readyState = Open
