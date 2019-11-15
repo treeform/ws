@@ -26,5 +26,5 @@ jobs:
         nim c tests/test.nim
         nim c tests/welcome.nim
         nim c tests/welcome_protocol.nim
-        nimble install jester
+        nimble install -y jester
         nim c tests/jester_test.nim
