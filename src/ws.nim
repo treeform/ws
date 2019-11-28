@@ -246,7 +246,7 @@ proc encodeFrame(f: Frame): string =
   return ret.readAll()
 
 
-proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
+proc send*(ws: WebSocket, text: string, opcode = Opcode.Text, masked = true):
     Future[void] {.async.} =
   ## This is the main method used to send data via this WebSocket.  
   try:
@@ -256,7 +256,7 @@ proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
       rsv2: false,
       rsv3: false,
       opcode: opcode,
-      mask: false,
+      mask: masked,
       data: text
     ))
     const maxSize = 1024*1024
