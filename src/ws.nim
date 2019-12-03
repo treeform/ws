@@ -59,7 +59,7 @@ proc encodeBase16(str: string): string =
 
 proc genMaskKey(): array[4, char] =
   ## Generates a random key of 4 random chars.
-  proc r(): char = char(rand(256))
+  proc r(): char = char(rand(255))
   [r(), r(), r(), r()]
 
 
