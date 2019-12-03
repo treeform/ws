@@ -15,6 +15,7 @@ type
     key*: string
     protocol*: string
     readyState*: ReadyState
+    masked*: bool           # send masked packets
 
   WebSocketError* = object of Exception
 
@@ -71,6 +72,7 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
       raise newException(WebSocketError, "Not a valid websocket handshake.")
 
     var ws = WebSocket()
+    ws.masked = false
     ws.req = req
     ws.version = parseInt(req.headers["Sec-WebSocket-Version"])
     ws.key = req.headers["Sec-WebSocket-Key"].strip()
@@ -105,6 +107,7 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
 proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection, protocol is optinal, "" means no protocol.
   var ws = WebSocket()
+  ws.masked = true
   ws.req = Request()
   ws.req.client = newAsyncSocket()
   ws.protocol = protocol
@@ -256,7 +259,7 @@ proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
       rsv2: false,
       rsv3: false,
       opcode: opcode,
-      mask: false,
+      mask: ws.masked,
       data: text
     ))
     const maxSize = 1024*1024
@@ -331,6 +334,12 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   # Do we need to apply mask?
   result.mask = (b1 and 0x80) == 0x80
+
+  if ws.masked == result.mask:
+    # Server sends unmasked but accepts only masked
+    # Client sends masked by accepts only unmasked
+    raise newException(WebSocketError, "Socket mask missmatch")
+
   var maskKey = ""
   if result.mask:
     # Read the mask.
