@@ -15,6 +15,7 @@ jobs:
         echo "export PATH=~/.nimble/bin:$PATH" >> ~/.profile
         choosenim stable        
         nim c src/ws.nim
+        nim c -r tests/test.nim
         nim c tests/chat.nim
         nim c tests/chat.nim
         nim c tests/echo.nim
@@ -23,7 +24,6 @@ jobs:
         nim c tests/sender_ping.nim
         nim c tests/sender_protocol.nim
         nim c tests/sender_wss.nim
-        nim c tests/test.nim
         nim c tests/welcome.nim
         nim c tests/welcome_protocol.nim
         nimble install -y jester

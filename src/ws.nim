@@ -10,11 +10,12 @@ type
     Closed = 3                # The connection is closed or couldn't be opened.
 
   WebSocket* = ref object
-    req*: Request
+    tcpSocket*: AsyncSocket
     version*: int
     key*: string
     protocol*: string
     readyState*: ReadyState
+    masked*: bool           # send masked packets
 
   WebSocketError* = object of Exception
 
@@ -40,7 +41,7 @@ proc nibbleToChar(value: int): char =
     else: char(value + ord('a') - 10)
 
 
-proc decodeBase16(str: string): string =
+proc decodeBase16*(str: string): string =
   ## Base16 decode a string.
   result = newString(str.len div 2)
   for i in 0 ..< result.len:
@@ -49,7 +50,7 @@ proc decodeBase16(str: string): string =
       nibbleFromChar(str[2 * i + 1]))
 
 
-proc encodeBase16(str: string): string =
+proc encodeBase16*(str: string): string =
   ## Base61 encode a string.
   result = newString(str.len * 2)
   for i, c in str:
@@ -63,6 +64,29 @@ proc genMaskKey(): array[4, char] =
   [r(), r(), r(), r()]
 
 
+proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
+  ws.version = parseInt(headers["Sec-WebSocket-Version"])
+  ws.key = headers["Sec-WebSocket-Key"].strip()
+  if headers.hasKey("Sec-WebSocket-Protocol"):
+    ws.protocol = headers["Sec-WebSocket-Protocol"].strip()
+
+  let 
+    sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+    acceptKey = base64.encode(decodeBase16($sh))
+
+  var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
+  responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
+  responce.add("Connection: Upgrade\c\L")
+  responce.add("Upgrade: webSocket\c\L")
+
+  if ws.protocol != "":
+    responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
+  responce.add "\c\L"
+
+  await ws.tcpSocket.send(responce)
+  ws.readyState = Open
+
+
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
   try:
@@ -71,27 +95,9 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
       raise newException(WebSocketError, "Not a valid websocket handshake.")
 
     var ws = WebSocket()
-    ws.req = req
-    ws.version = parseInt(req.headers["Sec-WebSocket-Version"])
-    ws.key = req.headers["Sec-WebSocket-Key"].strip()
-    if req.headers.hasKey("Sec-WebSocket-Protocol"):
-      ws.protocol = req.headers["Sec-WebSocket-Protocol"].strip()
-
-    let 
-      sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-      acceptKey = base64.encode(decodeBase16($sh))
-
-    var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
-    responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
-    responce.add("Connection: Upgrade\c\L")
-    responce.add("Upgrade: webSocket\c\L")
-
-    if ws.protocol != "":
-      responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
-    responce.add "\c\L"
-
-    await ws.req.client.send(responce)
-    ws.readyState = Open
+    ws.masked = false
+    ws.tcpSocket = req.client
+    await ws.handshake(req.headers)
     return ws
 
   except ValueError, KeyError:
@@ -105,8 +111,8 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
 proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection, protocol is optinal, "" means no protocol.
   var ws = WebSocket()
-  ws.req = Request()
-  ws.req.client = newAsyncSocket()
+  ws.masked = true
+  ws.tcpSocket = newAsyncSocket()
   ws.protocol = protocol
 
   var uri = parseUri(url)
@@ -138,7 +144,7 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
   if ws.protocol != "":
     if ws.protocol != res.headers["Sec-WebSocket-Protocol"]:
       raise newException(WebSocketError, "Protocols don't match")
-  ws.req.client = client.getSocket()
+  ws.tcpSocket = client.getSocket()
 
   ws.readyState = Open
   return ws
@@ -256,7 +262,7 @@ proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
       rsv2: false,
       rsv3: false,
       opcode: opcode,
-      mask: false,
+      mask: ws.masked,
       data: text
     ))
     const maxSize = 1024*1024
@@ -265,7 +271,7 @@ proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
     var i = 0
     while i < frame.len:
       let data = frame[i ..< min(frame.len, i + maxSize)]  
-      await ws.req.client.send(data)  
+      await ws.tcpSocket.send(data)  
       i += maxSize
       await sleepAsync(1)
   except Defect, IOError, OSError:
@@ -280,12 +286,12 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   ## Gets a frame from the WebSocket.
   ## See https://tools.ietf.org/html/rfc6455#section-5.2
 
-  if cast[int](ws.req.client.getFd) == -1:
+  if cast[int](ws.tcpSocket.getFd) == -1:
     ws.readyState = Closed
     return result
 
   # Grab the header.
-  let header = await ws.req.client.recv(2)
+  let header = await ws.tcpSocket.recv(2)
 
   if header.len != 2:
     ws.readyState = Closed
@@ -312,7 +318,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   let headerLen = uint(b1 and 0x7f)
   if headerLen == 0x7e:
     # Length must be 7+16 bits.
-    var lenstr = await ws.req.client.recv(2)
+    var lenstr = await ws.tcpSocket.recv(2)
     if lenstr.len != 2:
       raise newException(WebSocketError, "Socket closed")
 
@@ -320,7 +326,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   elif headerLen == 0x7f:
     # Length must be 7+64 bits.
-    var lenstr = await ws.req.client.recv(8)
+    var lenstr = await ws.tcpSocket.recv(8)
     if lenstr.len != 8:
       raise newException(WebSocketError, "Socket closed")
     finalLen = cast[ptr uint32](lenstr[4].addr)[].htonl
@@ -331,15 +337,21 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   # Do we need to apply mask?
   result.mask = (b1 and 0x80) == 0x80
+
+  if ws.masked == result.mask:
+    # Server sends unmasked but accepts only masked.
+    # Client sends masked but accepts only unmasked.
+    raise newException(WebSocketError, "Socket mask missmatch")
+
   var maskKey = ""
   if result.mask:
     # Read the mask.
-    maskKey = await ws.req.client.recv(4)
+    maskKey = await ws.tcpSocket.recv(4)
     if maskKey.len != 4:
       raise newException(WebSocketError, "Socket closed")
 
   # Read the data.
-  result.data = await ws.req.client.recv(int finalLen)
+  result.data = await ws.tcpSocket.recv(int finalLen)
   if result.data.len != int finalLen:
     raise newException(WebSocketError, "Socket closed")
 
@@ -422,7 +434,7 @@ proc hangup*(ws: WebSocket) =
   ## Closes the Socket without sending a close packet
   ws.readyState = Closed
   try:
-    ws.req.client.close()
+    ws.tcpSocket.close()
   except:
     raise newException(
       WebSocketError, 
@@ -435,6 +447,6 @@ proc close*(ws: WebSocket) =
   ws.readyState = Closed
   proc close() {.async.} =
     await ws.send("", Close)
-    ws.req.client.close()
+    ws.tcpSocket.close()
   asyncCheck close()
 
