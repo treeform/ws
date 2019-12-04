@@ -62,7 +62,7 @@ block: # 7+64 bits length
   ))[0..32] == "\129\127\0\0\0\0\0\1\169\"How are you this is the"
 
 block: # masking
-  assert encodeFrame((
+  let data = encodeFrame((
     fin: true,
     rsv1: false,
     rsv2: false,
@@ -70,4 +70,5 @@ block: # masking
     opcode: Opcode.Text,
     mask: true,
     data: "hi there"
-  )) == "\129\136\13M\137/e$\169[e(\251J"
+  )) 
+  assert data == "\129\136\207\216\5e\167\177%\17\167\189w\0"
