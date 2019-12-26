@@ -74,16 +74,16 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
     sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
     acceptKey = base64.encode(decodeBase16($sh))
 
-  var responce = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
-  responce.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
-  responce.add("Connection: Upgrade\c\L")
-  responce.add("Upgrade: webSocket\c\L")
+  var response = "HTTP/1.1 101 Web Socket Protocol Handshake\c\L"
+  response.add("Sec-WebSocket-Accept: " & acceptKey & "\c\L")
+  response.add("Connection: Upgrade\c\L")
+  response.add("Upgrade: webSocket\c\L")
 
   if ws.protocol != "":
-    responce.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
-  responce.add "\c\L"
+    response.add("Sec-WebSocket-Protocol: " & ws.protocol & "\c\L")
+  response.add "\c\L"
 
-  await ws.tcpSocket.send(responce)
+  await ws.tcpSocket.send(response)
   ws.readyState = Open
 
 
@@ -131,11 +131,18 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     port = Port(parseInt(uri.port))
 
   var client = newAsyncHttpClient()
+  
+  # generate secure key
+  var secStr = newString(16)
+  for i in 0 ..< secStr.len:
+    secStr[i] = char rand(255)
+  let secKey = base64.encode(secStr)
+
   client.headers = newHttpHeaders({
     "Connection": "Upgrade",
     "Upgrade": "websocket",
     "Sec-WebSocket-Version": "13",
-    "Sec-WebSocket-Key": "JCSoP2Cyk0cHZkKAit5DjA==",
+    "Sec-WebSocket-Key": secKey,
     "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
   if ws.protocol != "":
