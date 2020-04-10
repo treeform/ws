@@ -393,7 +393,6 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
         "Got binary packet when looking for a string packet")
     of Ping:
       await ws.send(data, Pong)
-      echo "got ping and replied"
     of Pong:
       discard
     of Cont:
