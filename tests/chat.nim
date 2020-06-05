@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver
+import asyncdispatch, asynchttpserver, ws
 
 var connections = newSeq[WebSocket]()
 

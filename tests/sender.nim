@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver
+import asyncdispatch, asynchttpserver, ws
 
 proc main() {.async.} =
   var ws = await newWebSocket("ws://127.0.0.1:9001/ws")
@@ -8,5 +8,3 @@ proc main() {.async.} =
   ws.close()
 
 waitFor main()
-
-

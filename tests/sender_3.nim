@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver, httpclient
+import asyncdispatch, asynchttpserver, httpclient, ws
 
 # Create three sockets and read from each of them asynchronously
 
@@ -28,5 +28,3 @@ proc main() {.async.} =
     await sleepAsync(10)
 
 waitFor main()
-
-

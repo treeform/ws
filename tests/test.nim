@@ -70,5 +70,5 @@ block: # masking
     opcode: Opcode.Text,
     mask: true,
     data: "hi there"
-  )) 
+  ))
   assert data == "\129\136\207\216\5e\167\177%\17\167\189w\0"

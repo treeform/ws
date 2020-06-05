@@ -1,13 +1,12 @@
-import httpcore, httpclient, asynchttpserver, asyncdispatch, nativesockets,
-  asyncnet, strutils, streams, random, std/sha1, base64, uri, strformat, 
-  httpcore, net
+import asyncdispatch, asynchttpserver, asyncnet, base64, httpclient, httpcore,
+    nativesockets, net, random, std/sha1, streams, strformat, strutils, uri
 
 type
   ReadyState* = enum
-    Connecting = 0            # The connection is not yet open.
-    Open = 1                  # The connection is open and ready to communicate.
-    Closing = 2               # The connection is in the process of closing.
-    Closed = 3                # The connection is closed or couldn't be opened.
+    Connecting = 0 # The connection is not yet open.
+    Open = 1       # The connection is open and ready to communicate.
+    Closing = 2    # The connection is in the process of closing.
+    Closed = 3     # The connection is closed or couldn't be opened.
 
   WebSocket* = ref object
     tcpSocket*: AsyncSocket
@@ -15,15 +14,13 @@ type
     key*: string
     protocol*: string
     readyState*: ReadyState
-    masked*: bool           # send masked packets
+    masked*: bool # send masked packets
 
-  WebSocketError* = object of Exception
-
+  WebSocketError* = object of IOError
 
 template `[]`(value: uint8, index: int): bool =
   ## Get bits from uint8, uint8[2] gets 2nd bit.
   (value and (1 shl (7 - index))) != 0
-
 
 proc nibbleFromChar(c: char): int =
   ## Converts hex chars like `0` to 0 and `F` to 15.
@@ -33,13 +30,11 @@ proc nibbleFromChar(c: char): int =
     of 'A'..'F': (ord(c) - ord('A') + 10)
     else: 255
 
-
 proc nibbleToChar(value: int): char =
   ## Converts number like 0 to `0` and 15 to `fg`.
   case value:
     of 0..9: char(value + ord('0'))
     else: char(value + ord('a') - 10)
-
 
 proc decodeBase16*(str: string): string =
   ## Base16 decode a string.
@@ -49,7 +44,6 @@ proc decodeBase16*(str: string): string =
       (nibbleFromChar(str[2 * i]) shl 4) or
       nibbleFromChar(str[2 * i + 1]))
 
-
 proc encodeBase16*(str: string): string =
   ## Base61 encode a string.
   result = newString(str.len * 2)
@@ -57,12 +51,10 @@ proc encodeBase16*(str: string): string =
     result[i * 2] = nibbleToChar(ord(c) shr 4)
     result[i * 2 + 1] = nibbleToChar(ord(c) and 0x0f)
 
-
 proc genMaskKey(): array[4, char] =
   ## Generates a random key of 4 random chars.
   proc r(): char = char(rand(255))
   [r(), r(), r(), r()]
-
 
 proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   ws.version = parseInt(headers["Sec-WebSocket-Version"])
@@ -70,7 +62,7 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   if headers.hasKey("Sec-WebSocket-Protocol"):
     ws.protocol = headers["Sec-WebSocket-Protocol"].strip()
 
-  let 
+  let
     sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
     acceptKey = base64.encode(decodeBase16($sh))
 
@@ -85,7 +77,6 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
 
   await ws.tcpSocket.send(response)
   ws.readyState = Open
-
 
 proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
@@ -103,13 +94,13 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
   except ValueError, KeyError:
     # Wrap all exceptions in a WebSocketError so its easy to catch
     raise newException(
-      WebSocketError, 
+      WebSocketError,
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-
 proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
-  ## Creates a new WebSocket connection, protocol is optinal, "" means no protocol.
+  ## Creates a new WebSocket connection,
+  ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
   ws.masked = true
   ws.tcpSocket = newAsyncSocket()
@@ -131,7 +122,7 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     port = Port(parseInt(uri.port))
 
   var client = newAsyncHttpClient()
-  
+
   # generate secure key
   var secStr = newString(16)
   for i in 0 ..< secStr.len:
@@ -156,20 +147,20 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
   ws.readyState = Open
   return ws
 
-
 type
   Opcode* = enum
     ## 4 bits. Defines the interpretation of the "Payload data".
-    Cont = 0x0                ## denotes a continuation frame
-    Text = 0x1                ## denotes a text frame
-    Binary = 0x2              ## denotes a binary frame
+    Cont = 0x0   ## denotes a continuation frame
+    Text = 0x1   ## denotes a text frame
+    Binary = 0x2 ## denotes a binary frame
     # 3-7 are reserved for further non-control frames
-    Close = 0x8               ## denotes a connection close
-    Ping = 0x9                ## denotes a ping
-    Pong = 0xa                ## denotes a pong
+    Close = 0x8  ## denotes a connection close
+    Ping = 0x9   ## denotes a ping
+    Pong = 0xa   ## denotes a pong
     # B-F are reserved for further control frames
 
   #[
+  +---------------------------------------------------------------+
    0                   1                   2                   3
    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
   +-+-+-+-+-------+-+-------------+-------------------------------+
@@ -190,14 +181,13 @@ type
   +---------------------------------------------------------------+
   ]#
   Frame = tuple
-    fin: bool      ## Indicates that this is the final fragment in a message.
-    rsv1: bool     ## MUST be 0 unless negotiated that defines meanings
-    rsv2: bool
-    rsv3: bool
+    fin: bool ## Indicates that this is the final fragment in a message.
+    rsv1: bool ## MUST be 0 unless negotiated that defines meanings
+    rsv2: bool ## MUST be 0
+    rsv3: bool ## MUST be 0
     opcode: Opcode ## Defines the interpretation of the "Payload data".
-    mask: bool     ## Defines whether the "Payload data" is masked.
-    data: string   ## Payload data
-
+    mask: bool ## Defines whether the "Payload data" is masked.
+    data: string ## Payload data
 
 proc encodeFrame(f: Frame): string =
   ## Encodes a frame into a string buffer.
@@ -212,7 +202,7 @@ proc encodeFrame(f: Frame): string =
   ret.write(b0)
 
   # Payload length can be 7 bits, 7+16 bits, or 7+64 bits.
-  # 1st byte: playload len start and mask bit.
+  # 1st byte: payload len start and mask bit.
   var b1 = 0u8
 
   if f.data.len <= 125:
@@ -246,7 +236,7 @@ proc encodeFrame(f: Frame): string =
   var data = f.data
 
   if f.mask:
-    # If we need to maks it generate random mask key and mask the data.
+    # If we need to mask it generate random mask key and mask the data.
     let maskKey = genMaskKey()
     for i in 0..<data.len:
       data[i] = (data[i].uint8 xor maskKey[i mod 4].uint8).char
@@ -258,10 +248,9 @@ proc encodeFrame(f: Frame): string =
   ret.setPosition(0)
   return ret.readAll()
 
-
 proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
     Future[void] {.async.} =
-  ## This is the main method used to send data via this WebSocket.  
+  ## This is the main method used to send data via this WebSocket.
   try:
     var frame = encodeFrame((
       fin: true,
@@ -277,17 +266,16 @@ proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
     # This really large packets.
     var i = 0
     while i < frame.len:
-      let data = frame[i ..< min(frame.len, i + maxSize)]  
-      await ws.tcpSocket.send(data)  
+      let data = frame[i ..< min(frame.len, i + maxSize)]
+      await ws.tcpSocket.send(data)
       i += maxSize
       await sleepAsync(1)
   except Defect, IOError, OSError:
     # Wrap all exceptions in a WebSocketError so its easy to catch
     raise newException(
-      WebSocketError, 
+      WebSocketError,
       "Failed to send data: " & getCurrentExceptionMsg()
     )
-
 
 proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   ## Gets a frame from the WebSocket.
@@ -317,7 +305,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   # If any of the rsv are set close the socket.
   if result.rsv1 or result.rsv2 or result.rsv3:
     ws.readyState = Closed
-    raise newException(WebSocketError, "WebSocket Potocol missmatch")
+    raise newException(WebSocketError, "WebSocket Protocol mismatch")
 
   # Payload length can be 7 bits, 7+16 bits, or 7+64 bits.
   var finalLen: uint = 0
@@ -325,18 +313,17 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   let headerLen = uint(b1 and 0x7f)
   if headerLen == 0x7e:
     # Length must be 7+16 bits.
-    var lenstr = await ws.tcpSocket.recv(2)
-    if lenstr.len != 2:
+    var length = await ws.tcpSocket.recv(2)
+    if length.len != 2:
       raise newException(WebSocketError, "Socket closed")
-
-    finalLen = cast[ptr uint16](lenstr[0].addr)[].htons
+    finalLen = cast[ptr uint16](length[0].addr)[].htons
 
   elif headerLen == 0x7f:
     # Length must be 7+64 bits.
-    var lenstr = await ws.tcpSocket.recv(8)
-    if lenstr.len != 8:
+    var length = await ws.tcpSocket.recv(8)
+    if length.len != 8:
       raise newException(WebSocketError, "Socket closed")
-    finalLen = cast[ptr uint32](lenstr[4].addr)[].htonl
+    finalLen = cast[ptr uint32](length[4].addr)[].htonl
 
   else:
     # Length must be 7 bits.
@@ -348,7 +335,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   if ws.masked == result.mask:
     # Server sends unmasked but accepts only masked.
     # Client sends masked but accepts only unmasked.
-    raise newException(WebSocketError, "Socket mask missmatch")
+    raise newException(WebSocketError, "Socket mask mismatch")
 
   var maskKey = ""
   if result.mask:
@@ -367,7 +354,6 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     for i in 0 ..< result.data.len:
       result.data[i] = (result.data[i].uint8 xor maskKey[i mod 4].uint8).char
 
-
 proc receivePacket*(ws: WebSocket): Future[(Opcode, string)] {.async.} =
   ## Wait for a string or binary packet to come in.
   var frame = await ws.recvFrame()
@@ -380,7 +366,6 @@ proc receivePacket*(ws: WebSocket): Future[(Opcode, string)] {.async.} =
       raise newException(WebSocketError, "Socket closed")
     result[1].add frame.data
   return
-
 
 proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
   ## Wait only for a string packet to come. Errors out on Binary packets.
@@ -401,7 +386,6 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
       ws.readyState = Closed
       raise newException(WebSocketError, "Socket closed")
 
-
 proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
   ## Wait only for a binary packet to come. Errors out on string packets.
   let (opcode, data) = await ws.receivePacket()
@@ -421,12 +405,10 @@ proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
       ws.readyState = Closed
       raise newException(WebSocketError, "Socket closed")
 
-
 proc ping*(ws: WebSocket, data = "") {.async.} =
   ## Sends a ping to the other end, both server and client can send a ping.
   ## Data is optional.
   await ws.send(data, Ping)
-
 
 proc setupPings*(ws: WebSocket, seconds: float) =
   proc pingLoop() {.async.} =
@@ -435,7 +417,6 @@ proc setupPings*(ws: WebSocket, seconds: float) =
       await sleepAsync(1000.0 * seconds)
   asyncCheck pingLoop()
 
-
 proc hangup*(ws: WebSocket) =
   ## Closes the Socket without sending a close packet
   ws.readyState = Closed
@@ -443,10 +424,9 @@ proc hangup*(ws: WebSocket) =
     ws.tcpSocket.close()
   except:
     raise newException(
-      WebSocketError, 
+      WebSocketError,
       "Failed to hangup socket " & getCurrentExceptionMsg()
     )
-
 
 proc close*(ws: WebSocket) =
   ## Close the Socket, sends close packet.
@@ -455,4 +435,3 @@ proc close*(ws: WebSocket) =
     await ws.send("", Close)
     ws.tcpSocket.close()
   asyncCheck close()
-

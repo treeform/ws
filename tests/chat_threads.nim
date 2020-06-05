@@ -1,9 +1,9 @@
 # compile with --threads:on
 
-import ws, asyncdispatch, asynchttpserver
+import asyncdispatch, asynchttpserver, shared/seq, ws
+
 # Threading in nim is kind of hard
 # we need an extra lib to make it eaiser:
-import shared/seq
 # Chreate a chat log to sync chat message between threads
 var chatLog = newSharedSeq[string]()
 # We can only pass pointers to chat log so create that
@@ -12,7 +12,7 @@ var chatLogPtr = unsafeAddr chatLog
 proc cb(req: Request) {.async.} =
   if req.url.path == "/ws":
     try:
-      var ws = await newWebSocket(req)      
+      var ws = await newWebSocket(req)
       echo "connected..."
       await ws.send("Welcome to simple chat server")
 
@@ -35,14 +35,14 @@ proc cb(req: Request) {.async.} =
         # Loops while socket is open, looking for messages to read
         while ws.readyState == Open:
           # this blocks
-          var packet = await ws.receiveStrPacket()  
+          var packet = await ws.receiveStrPacket()
           # add message to chat log
           chatLogPtr[].add(packet)
 
       # start a async fiber thingy
       asyncCheck writer()
       await reader()
-      
+
     except WebSocketError:
       echo "socket closed:", getCurrentExceptionMsg()
   await req.respond(Http200, "Hello World")

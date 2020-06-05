@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver
+import asyncdispatch, asynchttpserver, ws
 
 proc cb(req: Request) {.async.} =
   if req.url.path == "/ws":

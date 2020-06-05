@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver
+import asyncdispatch, asynchttpserver, ws
 
 proc main() {.async.} =
   # connect with "alpha" websocket protocol
@@ -6,5 +6,3 @@ proc main() {.async.} =
   ws.close()
 
 waitFor main()
-
-
