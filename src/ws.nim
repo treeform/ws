@@ -57,6 +57,7 @@ proc genMaskKey(): array[4, char] =
   [r(), r(), r(), r()]
 
 proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
+  ## Handles the websocket handshake.
   ws.version = parseInt(headers["Sec-WebSocket-Version"])
   ws.key = headers["Sec-WebSocket-Key"].strip()
   if headers.hasKey("Sec-WebSocket-Protocol"):
@@ -92,7 +93,7 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
     return ws
 
   except ValueError, KeyError:
-    # Wrap all exceptions in a WebSocketError so its easy to catch
+    # Wrap all exceptions in a WebSocketError so its easy to catch.
     raise newException(
       WebSocketError,
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
@@ -123,7 +124,7 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
 
   var client = newAsyncHttpClient()
 
-  # generate secure key
+  # Generate secure key.
   var secStr = newString(16)
   for i in 0 ..< secStr.len:
     secStr[i] = char rand(255)
@@ -150,19 +151,19 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
 type
   Opcode* = enum
     ## 4 bits. Defines the interpretation of the "Payload data".
-    Cont = 0x0   ## denotes a continuation frame
-    Text = 0x1   ## denotes a text frame
-    Binary = 0x2 ## denotes a binary frame
-    # 3-7 are reserved for further non-control frames
-    Close = 0x8  ## denotes a connection close
-    Ping = 0x9   ## denotes a ping
-    Pong = 0xa   ## denotes a pong
-    # B-F are reserved for further control frames
+    Cont = 0x0   ## Denotes a continuation frame.
+    Text = 0x1   ## Denotes a text frame.
+    Binary = 0x2 ## Denotes a binary frame.
+    # 3-7 are reserved for further non-control frames.
+    Close = 0x8  ## Denotes a connection close.
+    Ping = 0x9   ## Denotes a ping.
+    Pong = 0xa   ## Denotes a pong.
+    # B-F are reserved for further control frames.
 
   #[
   +---------------------------------------------------------------+
-   0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  |0                   1                   2                   3  |
+  |0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1|
   +-+-+-+-+-------+-+-------------+-------------------------------+
   |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
   |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
@@ -195,7 +196,7 @@ proc encodeFrame(f: Frame): string =
 
   var ret = newStringStream()
 
-  var b0 = (f.opcode.uint8 and 0x0f) # 0th byte: opcodes and flags
+  var b0 = (f.opcode.uint8 and 0x0f) # 0th byte: opcodes and flags.
   if f.fin:
     b0 = b0 or 128u8
 
@@ -248,8 +249,9 @@ proc encodeFrame(f: Frame): string =
   ret.setPosition(0)
   return ret.readAll()
 
-proc send*(ws: WebSocket, text: string, opcode = Opcode.Text):
-    Future[void] {.async.} =
+proc send*(
+  ws: WebSocket, text: string, opcode = Opcode.Text
+): Future[void] {.async.} =
   ## This is the main method used to send data via this WebSocket.
   try:
     var frame = encodeFrame((
@@ -411,6 +413,7 @@ proc ping*(ws: WebSocket, data = "") {.async.} =
   await ws.send(data, Ping)
 
 proc setupPings*(ws: WebSocket, seconds: float) =
+  ## Sets a delay on when to send pings.
   proc pingLoop() {.async.} =
     while ws.readyState != Closed:
       await ws.ping()
@@ -418,7 +421,7 @@ proc setupPings*(ws: WebSocket, seconds: float) =
   asyncCheck pingLoop()
 
 proc hangup*(ws: WebSocket) =
-  ## Closes the Socket without sending a close packet
+  ## Closes the Socket without sending a close packet.
   ws.readyState = Closed
   try:
     ws.tcpSocket.close()
