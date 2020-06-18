@@ -139,7 +139,7 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
   })
   if ws.protocol != "":
     client.headers["Sec-WebSocket-Protocol"] = ws.protocol
-  var res = await client.get(url)
+  var res = await client.get($uri)
   if ws.protocol != "":
     if ws.protocol != res.headers["Sec-WebSocket-Protocol"]:
       raise newException(WebSocketError, "Protocols don't match")
