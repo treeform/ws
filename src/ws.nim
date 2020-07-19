@@ -135,7 +135,8 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     "Upgrade": "websocket",
     "Sec-WebSocket-Version": "13",
     "Sec-WebSocket-Key": secKey,
-    "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+    # TODO: implement extra extensions
+    # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
   if ws.protocol != "":
     client.headers["Sec-WebSocket-Protocol"] = ws.protocol
