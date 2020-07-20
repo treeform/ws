@@ -145,8 +145,12 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
   if ws.protocol != "":
     client.headers["Sec-WebSocket-Protocol"] = ws.protocol
   var res = await client.get($uri)
+  let hasUpgrade = res.headers.getOrDefault("Upgrade")
+  if hasUpgrade.toLowerAscii() != "websocket":
+    raise newException(WebSocketError,
+        &"Failed to Upgrade (Possibly Connected to non-WebSocket url)")
   if ws.protocol != "":
-    let resProtocol = res.headers["Sec-WebSocket-Protocol"]
+    var resProtocol = res.headers.getOrDefault("Sec-WebSocket-Protocol")
     if ws.protocol != resProtocol:
       raise newException(WebSocketError,
         &"Protocol mismatch (expected: {ws.protocol}, got: {resProtocol})")
