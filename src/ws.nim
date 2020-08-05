@@ -1,5 +1,5 @@
 import asyncdispatch, asynchttpserver, asyncnet, base64, httpclient, httpcore,
-    nativesockets, net, random, std/sha1, streams, strformat, strutils, uri
+    nativesockets, net, random, std/sha1, streams, strformat, strutils, sequtils, uri
 
 type
   ReadyState* = enum
@@ -103,7 +103,10 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
+proc newWebSocket*(url: string,
+                  protocol: string = "",
+                  custom_headers:seq[ tuple[key: string, val: string] ] = @[]):
+                  Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
@@ -134,14 +137,14 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     secStr[i] = char rand(255)
   let secKey = base64.encode(secStr)
 
-  client.headers = newHttpHeaders({
-    "Connection": "Upgrade",
-    "Upgrade": "websocket",
-    "Sec-WebSocket-Version": "13",
-    "Sec-WebSocket-Key": secKey,
-    # TODO: implement extra extensions
-    # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
-  })
+  client.headers = newHttpHeaders( 
+  @[
+  ("Connection", "Upgrade"),
+  ("Upgrade", "websocket"),
+  ("Sec-WebSocket-Version", "13"),
+  ("Sec-WebSocket-Key", secKey) 
+  ].concat customheaders )
+
   if ws.protocol != "":
     client.headers["Sec-WebSocket-Protocol"] = ws.protocol
   var res = await client.get($uri)
