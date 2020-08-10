@@ -56,6 +56,10 @@ proc genMaskKey(): array[4, char] =
   proc r(): char = char(rand(255))
   [r(), r(), r(), r()]
 
+proc toSeq*(hv: HttpHeaderValues): seq[string] =
+  ## Casts HttpHeaderValues to seq of strings.
+  cast[seq[string]](hv)
+
 proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   ## Handles the websocket handshake.
   ws.version = parseInt(headers["Sec-WebSocket-Version"])
@@ -103,13 +107,13 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
+proc newWebSocket*(url: string, protocols: seq[string] = @[]):
+    Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
   ws.masked = true
   ws.tcpSocket = newAsyncSocket()
-  ws.protocol = protocol
 
   var uri = parseUri(url)
   var port = Port(9001)
@@ -142,22 +146,28 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     # TODO: implement extra extensions
     # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
-  if ws.protocol != "":
-    client.headers["Sec-WebSocket-Protocol"] = ws.protocol
+  if protocols.len > 0:
+    client.headers["Sec-WebSocket-Protocol"] = protocols.join(", ")
   var res = await client.get($uri)
   let hasUpgrade = res.headers.getOrDefault("Upgrade")
   if hasUpgrade.toLowerAscii() != "websocket":
     raise newException(WebSocketError,
         &"Failed to Upgrade (Possibly Connected to non-WebSocket url)")
-  if ws.protocol != "":
+  if protocols.len > 0:
     var resProtocol = res.headers.getOrDefault("Sec-WebSocket-Protocol")
-    if ws.protocol != resProtocol:
+    if resProtocol in protocols:
+      ws.protocol = resProtocol
+    else:
       raise newException(WebSocketError,
-        &"Protocol mismatch (expected: {ws.protocol}, got: {resProtocol})")
+        &"Protocol mismatch (expected: {protocols}, got: {resProtocol})")
   ws.tcpSocket = client.getSocket()
 
   ws.readyState = Open
   return ws
+
+proc newWebSocket*(url: string, protocol: string):
+    Future[WebSocket] {.async.} =
+  return await newWebSocket(url, @[protocol])
 
 type
   Opcode* = enum
