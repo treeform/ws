@@ -19,16 +19,19 @@ block:
 
   block:
     var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo", "foo2"])
+    assert ws.protocol == "foo"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo1"
     ws.close()
 
   block:
     var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo2"])
+    assert ws.protocol == "foo2"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo2"
     ws.close()
 
   block:
     var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo"])
+    assert ws.protocol == "foo"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo1"
     ws.close()
 
