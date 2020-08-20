@@ -18,7 +18,8 @@ proc cb(req: Request) {.async.} =
     while ws.readyState == Open:
       let packet = await ws.receiveStrPacket()
       await ws.send(packet)
-  await req.respond(Http200, "Hello World")
+  else:
+    await req.respond(Http404, "Not found")
 
 waitFor server.serve(Port(9001), cb)
 ```
@@ -55,7 +56,8 @@ proc cb(req: Request) {.async, gcsafe.} =
             asyncCheck other.send(packet)
     except WebSocketError:
       echo "socket closed:", getCurrentExceptionMsg()
-  await req.respond(Http200, "Hello World")
+  else:
+    await req.respond(Http404, "Not found")
 
 var server = newAsyncHttpServer()
 waitFor server.serve(Port(9001), cb)
@@ -104,7 +106,7 @@ import jester
 import ws, ws/jester_extra
 
 routes:
-  get "/ws": 
+  get "/ws":
     var ws = await newWebSocket(request)
     await ws.send("Welcome to simple echo server")
     while ws.readyState == Open:
@@ -169,7 +171,7 @@ Opcode = enum
 
 ## **proc** send
 
-This is the main method used to send data via this WebSocket.  
+This is the main method used to send data via this WebSocket.
 
 ```nim
 proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void] {.async, raises: [WebSocketError], tags: [WriteIOEffect, ReadIOEffect].}
@@ -211,7 +213,7 @@ proc ping(ws: WebSocket; data = "") {.async.}
 
 
 ```nim
-proc setupPings(ws: WebSocket; seconds: float) 
+proc setupPings(ws: WebSocket; seconds: float)
 ```
 
 ## **proc** hangup
@@ -227,6 +229,5 @@ proc hangup(ws: WebSocket) {.raises: [WebSocketError].}
 Close the Socket, sends close packet.
 
 ```nim
-proc close(ws: WebSocket) 
+proc close(ws: WebSocket)
 ```
-

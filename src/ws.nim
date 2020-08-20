@@ -90,7 +90,6 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
   ## Creates a new socket from a request.
   try:
     if not req.headers.hasKey("Sec-WebSocket-Version"):
-      await req.respond(Http404, "Not Found")
       raise newException(WebSocketError, "Invalid WebSocket handshake")
 
     var ws = WebSocket()
@@ -306,10 +305,14 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   if cast[int](ws.tcpSocket.getFd) == -1:
     ws.readyState = Closed
-    return result
+    raise newException(WebSocketError, "Socket closed")
 
   # Grab the header.
-  let header = await ws.tcpSocket.recv(2)
+  var header: string
+  try:
+    header = await ws.tcpSocket.recv(2)
+  except:
+    raise newException(WebSocketError, "Socket closed")
 
   if header.len != 2:
     ws.readyState = Closed
