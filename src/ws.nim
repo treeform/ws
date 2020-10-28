@@ -56,12 +56,19 @@ proc genMaskKey(): array[4, char] =
   proc r(): char = char(rand(255))
   [r(), r(), r(), r()]
 
+proc toSeq*(hv: HttpHeaderValues): seq[string] =
+  ## Casts HttpHeaderValues to seq of strings.
+  cast[seq[string]](hv)
+
 proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   ## Handles the websocket handshake.
   ws.version = parseInt(headers["Sec-WebSocket-Version"])
   ws.key = headers["Sec-WebSocket-Key"].strip()
   if headers.hasKey("Sec-WebSocket-Protocol"):
-    ws.protocol = headers["Sec-WebSocket-Protocol"].strip()
+    let wantProtocol = headers["Sec-WebSocket-Protocol"].strip()
+    if ws.protocol != wantProtocol:
+      raise newException(WebSocketError,
+        &"Protocol mismatch (expected: {ws.protocol}, got: {wantProtocol})")
 
   let
     sh = secureHash(ws.key & "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
@@ -79,16 +86,16 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   await ws.tcpSocket.send(response)
   ws.readyState = Open
 
-proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
+proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
   try:
     if not req.headers.hasKey("Sec-WebSocket-Version"):
-      await req.respond(Http404, "Not Found")
-      raise newException(WebSocketError, "Not a valid websocket handshake.")
+      raise newException(WebSocketError, "Invalid WebSocket handshake")
 
     var ws = WebSocket()
     ws.masked = false
     ws.tcpSocket = req.client
+    ws.protocol = protocol
     await ws.handshake(req.headers)
     return ws
 
@@ -99,13 +106,13 @@ proc newWebSocket*(req: Request): Future[WebSocket] {.async.} =
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.async.} =
+proc newWebSocket*(url: string, protocols: seq[string] = @[]):
+    Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
   ws.masked = true
   ws.tcpSocket = newAsyncSocket()
-  ws.protocol = protocol
 
   var uri = parseUri(url)
   var port = Port(9001)
@@ -118,7 +125,7 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
       port = Port(80)
     else:
       raise newException(WebSocketError,
-          &"Scheme {uri.scheme} not supported yet.")
+          &"Scheme {uri.scheme} not supported yet")
   if uri.port.len > 0:
     port = Port(parseInt(uri.port))
 
@@ -135,18 +142,31 @@ proc newWebSocket*(url: string, protocol: string = ""): Future[WebSocket] {.asyn
     "Upgrade": "websocket",
     "Sec-WebSocket-Version": "13",
     "Sec-WebSocket-Key": secKey,
-    "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+    # TODO: implement extra extensions
+    # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
-  if ws.protocol != "":
-    client.headers["Sec-WebSocket-Protocol"] = ws.protocol
+  if protocols.len > 0:
+    client.headers["Sec-WebSocket-Protocol"] = protocols.join(", ")
   var res = await client.get($uri)
-  if ws.protocol != "":
-    if ws.protocol != res.headers["Sec-WebSocket-Protocol"]:
-      raise newException(WebSocketError, "Protocols don't match")
+  let hasUpgrade = res.headers.getOrDefault("Upgrade")
+  if hasUpgrade.toLowerAscii() != "websocket":
+    raise newException(WebSocketError,
+        &"Failed to Upgrade (Possibly Connected to non-WebSocket url)")
+  if protocols.len > 0:
+    var resProtocol = res.headers.getOrDefault("Sec-WebSocket-Protocol")
+    if resProtocol in protocols:
+      ws.protocol = resProtocol
+    else:
+      raise newException(WebSocketError,
+        &"Protocol mismatch (expected: {protocols}, got: {resProtocol})")
   ws.tcpSocket = client.getSocket()
 
   ws.readyState = Open
   return ws
+
+proc newWebSocket*(url: string, protocol: string):
+    Future[WebSocket] {.async.} =
+  return await newWebSocket(url, @[protocol])
 
 type
   Opcode* = enum
@@ -285,14 +305,18 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   if cast[int](ws.tcpSocket.getFd) == -1:
     ws.readyState = Closed
-    return result
+    raise newException(WebSocketError, "Socket closed")
 
   # Grab the header.
-  let header = await ws.tcpSocket.recv(2)
+  var header: string
+  try:
+    header = await ws.tcpSocket.recv(2)
+  except:
+    raise newException(WebSocketError, "Socket closed")
 
   if header.len != 2:
     ws.readyState = Closed
-    raise newException(WebSocketError, "socket closed")
+    raise newException(WebSocketError, "Socket closed")
 
   let b0 = header[0].uint8
   let b1 = header[1].uint8
@@ -307,7 +331,7 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   # If any of the rsv are set close the socket.
   if result.rsv1 or result.rsv2 or result.rsv3:
     ws.readyState = Closed
-    raise newException(WebSocketError, "WebSocket Protocol mismatch")
+    raise newException(WebSocketError, "WebSocket rsv mismatch")
 
   # Payload length can be 7 bits, 7+16 bits, or 7+64 bits.
   var finalLen: uint = 0
@@ -377,7 +401,7 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
       return data
     of Binary:
       raise newException(WebSocketError,
-        "Got binary packet when looking for a string packet")
+        "Expected string packet, received binary packet")
     of Ping:
       await ws.send(data, Pong)
     of Pong:
@@ -394,7 +418,7 @@ proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
   case opcode:
     of Text:
       raise newException(WebSocketError,
-        "Got text packet when looking for a binary packet")
+        "Expected binary packet, received string packet")
     of Binary:
       return cast[seq[byte]](data)
     of Ping:
