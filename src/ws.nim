@@ -272,7 +272,7 @@ proc send*(
       await ws.tcpSocket.send(data)
       i += maxSize
       await sleepAsync(1)
-  except Defect, IOError, OSError:
+  except Defect, IOError, OSError, ValueError:
     # Wrap all exceptions in a WebSocketError so its easy to catch
     raise newException(
       WebSocketError,
