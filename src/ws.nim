@@ -441,7 +441,7 @@ proc setupPings*(ws: WebSocket, seconds: float) =
   proc pingLoop() {.async.} =
     while ws.readyState != Closed:
       await ws.ping()
-      await sleepAsync(1000.0 * seconds)
+      await sleepAsync(1000 * seconds)
   asyncCheck pingLoop()
 
 proc hangup*(ws: WebSocket) =
