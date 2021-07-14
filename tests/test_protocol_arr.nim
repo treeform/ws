@@ -4,8 +4,8 @@ block:
   # Start server
   proc cb(req: Request) {.async.} =
     if req.headers.hasKey("Sec-WebSocket-Protocol"):
-      if "foo" in req.headers["Sec-WebSocket-Protocol"].toSeq():
-        var ws = await newWebSocket(req, protocol = "foo")
+      if "foo1" in req.headers["Sec-WebSocket-Protocol"].toSeq():
+        var ws = await newWebSocket(req, protocol = "foo1")
         await ws.send("Welcome foo1")
         ws.close()
       elif "foo2" in req.headers["Sec-WebSocket-Protocol"].toSeq():
@@ -18,8 +18,8 @@ block:
   asyncCheck server.serve(Port(9002), cb)
 
   block:
-    var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo", "foo2"])
-    assert ws.protocol == "foo"
+    var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo1", "foo2"])
+    assert ws.protocol == "foo1"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo1"
     ws.close()
 
@@ -30,8 +30,8 @@ block:
     ws.close()
 
   block:
-    var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo"])
-    assert ws.protocol == "foo"
+    var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo1"])
+    assert ws.protocol == "foo1"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo1"
     ws.close()
 
