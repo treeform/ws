@@ -16,6 +16,8 @@ Features:
 * Async/Await Support
 * WebSocket Protocols
 * Timeouts and Disconnects
+* SSL support
+* Jester support
 
 ### Documentation
 
