@@ -1,0 +1,28 @@
+name: Github Actions
+on: [push, pull_request]
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: jiro4989/setup-nim-action@v1
+    - run: nim c src/ws.nim
+    - run: nim c -r tests/test.nim
+    - run: nim c tests/chat.nim
+    - run: nim c tests/chat.nim
+    - run: nim c tests/echo.nim
+    - run: nim c tests/sender.nim
+    - run: nim c tests/sender_3.nim
+    - run: nim c tests/sender_ping.nim
+    - run: nim c tests/sender_protocol.nim
+    - run: nim c tests/sender_wss.nim
+    - run: nim c tests/welcome.nim
+    - run: nim c tests/welcome_protocol.nim
+    - run: nimble install -y jester
+    - run: nim c tests/jester_test.nim
