@@ -2,8 +2,11 @@
 
 # Simple WebSocket library for nim.
 
-* Based on the work by niv https://github.com/niv/websocket.nim
-* Also see rfc https://tools.ietf.org/html/rfc6455
+I love webSockets. They are easy to use and supported everywhere. I use them instead of HTTP REST APIs. I find it much easier to think in terms of client/server messages then verbs and resource paths. Inevitably you want the server to notify the client when some thing changes. Inevitably you will use webSockets. Then you will have two systems. Stop the pain and just use plain webSockets from the start. Say no to REST.
+
+I recommend having only a webSocket server and host static html/js/css files some place like Amazon S3 or Google CloudStore. For HTTPS (or WSS in webSocket case) I usually wrap my webSocket server with Nginx with Let's Encrypt CertBot, and I also have just simply wrapped it with CloudFlare.
+
+This was originally based on the work by niv https://github.com/niv/websocket.nim. Thank you!
 
 This library is being actively developed and we'd be happy for you to use it.
 
@@ -16,6 +19,9 @@ Features:
 * Async/Await Support
 * WebSocket Protocols
 * Timeouts and Disconnects
+* SSL support
+* Jester support
+* Complaint: https://tools.ietf.org/html/rfc6455
 
 ### Documentation
 
