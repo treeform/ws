@@ -40,9 +40,13 @@ block:
 
   block:
     try:
-      var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["notfoo"])
+      var ws = waitFor newWebSocket(
+        "ws://127.0.0.1:9002/ws",
+        protocols = @["notfoo"]
+      )
       assert false
-    except WebSocketError:
+    except WebSocketFailedUpgradeError:
+      # Even though we fail the protocol the server closed connection.
       assert true
 
   server.close()

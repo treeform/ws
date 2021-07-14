@@ -10,11 +10,8 @@ block: # protocol mismatch
       var ws = await newWebSocket(req, protocol = "foo")
       await ws.send("Welcome")
       ws.close()
-    except:
-      if getCurrentExceptionMsg().startsWith(
-        "Protocol mismatch (expected: foo, got: foo2)"
-      ):
-        hadProtocolMismatch = true
+    except WebSocketProtocolMismatchError:
+      hadProtocolMismatch = true
       req.client.close()
   var server = newAsyncHttpServer()
   asyncCheck server.serve(Port(9002), cb)

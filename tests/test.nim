@@ -22,7 +22,8 @@ assert nibbleToChar(0) == '0'
 assert encodeBase16("hi how are you?") == "686920686f772061726520796f753f"
 assert decodeBase16("686920686f772061726520796f753f") == "hi how are you?"
 
-block: # 7bit length
+block:
+  # 7bit length
   assert encodeFrame((
     fin: true,
     rsv1: false,
@@ -33,7 +34,8 @@ block: # 7bit length
     data: "hi there"
   )) == "\129\8hi there"
 
-block: # 7+16 bits length
+block:
+  # 7+16 bits length
   var data = ""
   for i in 0..32:
     data.add "How are you this is the payload!!!"
@@ -47,7 +49,8 @@ block: # 7+16 bits length
     data: data
   ))[0..32] == "\129~\4bHow are you this is the paylo"
 
-block: # 7+64 bits length
+block:
+  # 7+64 bits length
   var data = ""
   for i in 0..3200:
     data.add "How are you this is the payload!!!"
@@ -61,7 +64,8 @@ block: # 7+64 bits length
     data: data
   ))[0..32] == "\129\127\0\0\0\0\0\1\169\"How are you this is the"
 
-block: # masking
+block:
+  # masking
   let data = encodeFrame((
     fin: true,
     rsv1: false,
