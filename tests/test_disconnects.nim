@@ -1,9 +1,9 @@
-import ws, asyncdispatch, asynchttpserver, strutils
+import asyncdispatch, asynchttpserver, strutils, ws
 
 var server = newAsyncHttpServer()
 var curWs: WebSocket
 
-proc gameLoop(){.async.}=
+proc gameLoop(){.async.} =
   for i in 0 .. 5:
     echo "gameLoop:" & $i
     if i == 4:

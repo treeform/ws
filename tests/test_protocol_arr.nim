@@ -18,7 +18,10 @@ block:
   asyncCheck server.serve(Port(9002), cb)
 
   block:
-    var ws = waitFor newWebSocket("ws://127.0.0.1:9002/ws", protocols = @["foo1", "foo2"])
+    var ws = waitFor newWebSocket(
+      "ws://127.0.0.1:9002/ws",
+      protocols = @["foo1", "foo2"]
+    )
     assert ws.protocol == "foo1"
     assert waitFor(ws.receiveStrPacket()) == "Welcome foo1"
     ws.close()

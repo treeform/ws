@@ -1,4 +1,4 @@
-import ws, asyncdispatch, asynchttpserver, strutils, httpClient
+import asyncdispatch, asynchttpserver, httpClient, strutils, ws
 
 var server = newAsyncHttpServer()
 proc serverCb(req: Request) {.async, gcsafe.} =

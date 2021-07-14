@@ -46,7 +46,8 @@ proc cb(req: Request) {.async.} =
     except WebSocketClosedError:
       echo "Socket closed. "
     except WebSocketProtocolMismatchError:
-      echo "Socket client tried to use an unknown protocol: ", getCurrentExceptionMsg()
+      echo "Socket client tried to use an unknown protocol: ",
+          getCurrentExceptionMsg()
     except WebSocketError:
       echo "Unexpected socket error: ", getCurrentExceptionMsg()
   await req.respond(Http200, "Hello World")

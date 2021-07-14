@@ -24,7 +24,6 @@ type
   WebSocketFailedUpgradeError* = object of WebSocketError
   WebSocketHandshakeError* = object of WebSocketError
 
-
 func newWebSocketClosedError(): auto =
   newException(WebSocketClosedError, "Socket closed")
 
@@ -96,7 +95,10 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   await ws.tcpSocket.send(response)
   ws.readyState = Open
 
-proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.async.} =
+proc newWebSocket*(
+  req: Request,
+  protocol: string = ""
+): Future[WebSocket] {.async.} =
   ## Creates a new socket from a request.
   try:
     if not req.headers.hasKey("Sec-WebSocket-Version"):
@@ -116,7 +118,10 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-proc newWebSocket*(url: string, protocols: seq[string] = @[]): Future[WebSocket] {.async.} =
+proc newWebSocket*(
+  url: string,
+  protocols: seq[string] = @[]
+): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
@@ -133,7 +138,10 @@ proc newWebSocket*(url: string, protocols: seq[string] = @[]): Future[WebSocket]
       uri.scheme = "http"
       port = Port(80)
     else:
-      raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet")
+      raise newException(
+        WebSocketError,
+        &"Scheme {uri.scheme} not supported yet"
+      )
   if uri.port.len > 0:
     port = Port(parseInt(uri.port))
 
@@ -158,15 +166,19 @@ proc newWebSocket*(url: string, protocols: seq[string] = @[]): Future[WebSocket]
   var res = await client.get($uri)
   let hasUpgrade = res.headers.getOrDefault("Upgrade")
   if hasUpgrade.toLowerAscii() != "websocket":
-    raise newException(WebSocketFailedUpgradeError,
-        &"Failed to Upgrade (Possibly Connected to non-WebSocket url)")
+    raise newException(
+      WebSocketFailedUpgradeError,
+      &"Failed to Upgrade (Possibly Connected to non-WebSocket url)"
+    )
   if protocols.len > 0:
     var resProtocol = res.headers.getOrDefault("Sec-WebSocket-Protocol")
     if resProtocol in protocols:
       ws.protocol = resProtocol
     else:
-      raise newException(WebSocketProtocolMismatchError,
-        &"Protocol mismatch (expected: {protocols}, got: {resProtocol})")
+      raise newException(
+        WebSocketProtocolMismatchError,
+        &"Protocol mismatch (expected: {protocols}, got: {resProtocol})"
+      )
   ws.tcpSocket = client.getSocket()
 
   ws.readyState = Open
@@ -408,8 +420,10 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
     of Text:
       return data
     of Binary:
-      raise newException(WebSocketPacketTypeError,
-        "Expected string packet, received binary packet")
+      raise newException(
+        WebSocketPacketTypeError,
+        "Expected string packet, received binary packet"
+      )
     of Ping:
       await ws.send(data, Pong)
     of Pong:
@@ -425,8 +439,10 @@ proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
   let (opcode, data) = await ws.receivePacket()
   case opcode:
     of Text:
-      raise newException(WebSocketPacketTypeError,
-        "Expected binary packet, received string packet")
+      raise newException(
+        WebSocketPacketTypeError,
+        "Expected binary packet, received string packet"
+      )
     of Binary:
       return cast[seq[byte]](data)
     of Ping:
