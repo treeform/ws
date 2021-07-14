@@ -7,9 +7,9 @@
 
 This library is being actively developed and we'd be happy for you to use it.
 
-`nimble install pixie`
+`nimble install ws`
 
-![Github Actions](https://github.com/treeform/pixie/workflows/Github%20Actions/badge.svg)
+![Github Actions](https://github.com/treeform/ws/workflows/Github%20Actions/badge.svg)
 
 Features:
 * Client and Server Side WebSocket
