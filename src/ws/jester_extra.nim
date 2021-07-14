@@ -11,7 +11,7 @@ when useHttpBeast:
 
       if not headers.hasKey("Sec-WebSocket-Version"):
         req.send(Http404, "Not Found")
-        raise newException(WebSocketError, "Not a valid websocket handshake.")
+        raise newException(WebSocketHandshakeError, "Not a valid websocket handshake.")
 
       var ws = WebSocket()
       ws.masked = false
@@ -25,9 +25,9 @@ when useHttpBeast:
       return ws
 
     except ValueError, KeyError:
-      # Wrap all exceptions in a WebSocketError so its easy to catch
+      # Wrap all exceptions in a WebSocketCreationError so its easy to catch
       raise newException(
-        WebSocketError,
+        WebSocketCreationError,
         "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
       )
 

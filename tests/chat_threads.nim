@@ -43,8 +43,12 @@ proc cb(req: Request) {.async.} =
       asyncCheck writer()
       await reader()
 
+    except WebSocketClosedError:
+      echo "Socket closed. "
+    except WebSocketProtocolMismatchError:
+      echo "Socket client tried to use an unknown protocol: ", getCurrentExceptionMsg()
     except WebSocketError:
-      echo "socket closed:", getCurrentExceptionMsg()
+      echo "Unexpected socket error: ", getCurrentExceptionMsg()
   await req.respond(Http200, "Hello World")
 
 var server = newAsyncHttpServer()

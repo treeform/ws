@@ -8,6 +8,6 @@ routes:
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
         await ws.send(packet)
-    except WebSocketError:
+    except WebSocketClosedError:
       echo "socket closed"
     result[0] = TCActionRaw # tell jester we handled the request

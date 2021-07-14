@@ -17,6 +17,16 @@ type
     masked*: bool # send masked packets
 
   WebSocketError* = object of IOError
+  WebSocketClosedError* = object of WebSocketError
+  WebSocketCreationError* = object of WebSocketError
+  WebSocketPacketTypeError* = object of WebSocketError
+  WebSocketProtocolMismatchError* = object of WebSocketError
+  WebSocketFailedUpgradeError* = object of WebSocketError
+  WebSocketHandshakeError* = object of WebSocketError
+
+
+func newWebSocketClosedError(): auto =
+  newException(WebSocketClosedError, "Socket closed")
 
 template `[]`(value: uint8, index: int): bool =
   ## Get bits from uint8, uint8[2] gets 2nd bit.
@@ -67,7 +77,7 @@ proc handshake*(ws: WebSocket, headers: HttpHeaders) {.async.} =
   if headers.hasKey("Sec-WebSocket-Protocol"):
     let wantProtocol = headers["Sec-WebSocket-Protocol"].strip()
     if ws.protocol != wantProtocol:
-      raise newException(WebSocketError,
+      raise newException(WebSocketProtocolMismatchError,
         &"Protocol mismatch (expected: {ws.protocol}, got: {wantProtocol})")
 
   let
@@ -90,7 +100,7 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
   ## Creates a new socket from a request.
   try:
     if not req.headers.hasKey("Sec-WebSocket-Version"):
-      raise newException(WebSocketError, "Invalid WebSocket handshake")
+      raise newException(WebSocketHandshakeError, "Invalid WebSocket handshake")
 
     var ws = WebSocket()
     ws.masked = false
@@ -100,14 +110,13 @@ proc newWebSocket*(req: Request, protocol: string = ""): Future[WebSocket] {.asy
     return ws
 
   except ValueError, KeyError:
-    # Wrap all exceptions in a WebSocketError so its easy to catch.
+    # Wrap all exceptions in a WebSocketCreationError so its easy to catch.
     raise newException(
-      WebSocketError,
+      WebSocketCreationError,
       "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
     )
 
-proc newWebSocket*(url: string, protocols: seq[string] = @[]):
-    Future[WebSocket] {.async.} =
+proc newWebSocket*(url: string, protocols: seq[string] = @[]): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
   var ws = WebSocket()
@@ -124,8 +133,7 @@ proc newWebSocket*(url: string, protocols: seq[string] = @[]):
       uri.scheme = "http"
       port = Port(80)
     else:
-      raise newException(WebSocketError,
-          &"Scheme {uri.scheme} not supported yet")
+      raise newException(WebSocketError, &"Scheme {uri.scheme} not supported yet")
   if uri.port.len > 0:
     port = Port(parseInt(uri.port))
 
@@ -150,14 +158,14 @@ proc newWebSocket*(url: string, protocols: seq[string] = @[]):
   var res = await client.get($uri)
   let hasUpgrade = res.headers.getOrDefault("Upgrade")
   if hasUpgrade.toLowerAscii() != "websocket":
-    raise newException(WebSocketError,
+    raise newException(WebSocketFailedUpgradeError,
         &"Failed to Upgrade (Possibly Connected to non-WebSocket url)")
   if protocols.len > 0:
     var resProtocol = res.headers.getOrDefault("Sec-WebSocket-Protocol")
     if resProtocol in protocols:
       ws.protocol = resProtocol
     else:
-      raise newException(WebSocketError,
+      raise newException(WebSocketProtocolMismatchError,
         &"Protocol mismatch (expected: {protocols}, got: {resProtocol})")
   ws.tcpSocket = client.getSocket()
 
@@ -305,18 +313,18 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
 
   if cast[int](ws.tcpSocket.getFd) == -1:
     ws.readyState = Closed
-    raise newException(WebSocketError, "Socket closed")
+    raise newWebSocketClosedError()
 
   # Grab the header.
   var header: string
   try:
     header = await ws.tcpSocket.recv(2)
   except:
-    raise newException(WebSocketError, "Socket closed")
+    raise newWebSocketClosedError()
 
   if header.len != 2:
     ws.readyState = Closed
-    raise newException(WebSocketError, "Socket closed")
+    raise newWebSocketClosedError()
 
   let b0 = header[0].uint8
   let b1 = header[1].uint8
@@ -341,14 +349,14 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     # Length must be 7+16 bits.
     var length = await ws.tcpSocket.recv(2)
     if length.len != 2:
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
     finalLen = cast[ptr uint16](length[0].addr)[].htons
 
   elif headerLen == 0x7f:
     # Length must be 7+64 bits.
     var length = await ws.tcpSocket.recv(8)
     if length.len != 8:
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
     finalLen = cast[ptr uint32](length[4].addr)[].htonl
 
   else:
@@ -368,12 +376,12 @@ proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
     # Read the mask.
     maskKey = await ws.tcpSocket.recv(4)
     if maskKey.len != 4:
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
 
   # Read the data.
   result.data = await ws.tcpSocket.recv(int finalLen)
   if result.data.len != int finalLen:
-    raise newException(WebSocketError, "Socket closed")
+    raise newWebSocketClosedError()
 
   if result.mask:
     # Apply mask, if we need too.
@@ -389,7 +397,7 @@ proc receivePacket*(ws: WebSocket): Future[(Opcode, string)] {.async.} =
   while frame.fin != true:
     frame = await ws.recvFrame()
     if frame.opcode != Cont:
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
     result[1].add frame.data
   return
 
@@ -400,7 +408,7 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
     of Text:
       return data
     of Binary:
-      raise newException(WebSocketError,
+      raise newException(WebSocketPacketTypeError,
         "Expected string packet, received binary packet")
     of Ping:
       await ws.send(data, Pong)
@@ -410,14 +418,14 @@ proc receiveStrPacket*(ws: WebSocket): Future[string] {.async.} =
       discard
     of Close:
       ws.readyState = Closed
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
 
 proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
   ## Wait only for a binary packet to come. Errors out on string packets.
   let (opcode, data) = await ws.receivePacket()
   case opcode:
     of Text:
-      raise newException(WebSocketError,
+      raise newException(WebSocketPacketTypeError,
         "Expected binary packet, received string packet")
     of Binary:
       return cast[seq[byte]](data)
@@ -429,7 +437,7 @@ proc receiveBinaryPacket*(ws: WebSocket): Future[seq[byte]] {.async.} =
       discard
     of Close:
       ws.readyState = Closed
-      raise newException(WebSocketError, "Socket closed")
+      raise newWebSocketClosedError()
 
 proc ping*(ws: WebSocket, data = "") {.async.} =
   ## Sends a ping to the other end, both server and client can send a ping.

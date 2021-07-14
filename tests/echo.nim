@@ -10,7 +10,7 @@ proc cb(req: Request) {.async.} =
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
         await ws.send(packet)
-    except WebSocketError:
+    except WebSocketClosedError:
       echo "socket closed:", getCurrentExceptionMsg()
   await req.respond(Http200, "Hello World")
 
