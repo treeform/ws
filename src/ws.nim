@@ -158,7 +158,6 @@ proc newWebSocket*(
     "Upgrade": "websocket",
     "Sec-WebSocket-Version": "13",
     "Sec-WebSocket-Key": secKey,
-    # TODO: implement extra extensions
     # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
   if protocols.len > 0:

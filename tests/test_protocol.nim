@@ -1,7 +1,7 @@
 include ../src/ws
 
-block: # protocol mismatch
-  # Start server
+block:
+  # Test protocol mismatch.
   var
     hadProtocolMismatch = false
     hadFailedNewSocket = false

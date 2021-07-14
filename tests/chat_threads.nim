@@ -1,7 +1,6 @@
-# compile with --threads:on
-
 import asyncdispatch, asynchttpserver, shared/seq, ws
 
+# compile with --threads:on
 # Threading in nim is kind of hard
 # we need an extra lib to make it eaiser:
 # Chreate a chat log to sync chat message between threads
