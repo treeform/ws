@@ -1,7 +1,25 @@
+<img src="docs/wsBanner.png">
+
 # Simple WebSocket library for nim.
 
 * Based on the work by niv https://github.com/niv/websocket.nim
 * Also see rfc https://tools.ietf.org/html/rfc6455
+
+This library is being actively developed and we'd be happy for you to use it.
+
+`nimble install pixie`
+
+![Github Actions](https://github.com/treeform/pixie/workflows/Github%20Actions/badge.svg)
+
+Features:
+* Client and Server Side WebSocket
+* Async/Await Support
+* WebSocket Protocols
+* Timeouts and Disconnects
+
+### Documentation
+
+API reference: https://nimdocs.com/treeform/ws/
 
 ## Example Echo Server:
 
@@ -112,122 +130,4 @@ routes:
     while ws.readyState == Open:
       let packet = await ws.receiveStrPacket()
       await ws.send(packet)
-```
-# API: ws
-
-```nim
-import ws
-```
-
-## **type** ReadyState
-
-
-```nim
-ReadyState = enum
-  Connecting = 0, Open = 1, Closing = 2, Closed = 3
-```
-
-## **type** WebSocket
-
-
-```nim
-WebSocket = ref object
-  req*: Request
-  version*: int
-  key*: string
-  protocol*: string
-  readyState*: ReadyState
-
-```
-
-## **type** WebSocketError
-
-
-```nim
-WebSocketError = object of Exception
-```
-
-## **proc** newWebSocket
-
-Creates a new socket from a request.
-
-```nim
-proc newWebSocket(req: Request): Future[WebSocket] {.async, raises: [WebSocketError].}
-```
-
-## **type** Opcode
-
-4 bits. Defines the interpretation of the "Payload data".
-
-```nim
-Opcode = enum
-  Cont = 0x00000000,            ## denotes a continuation frame
-  Text = 0x00000001,            ## denotes a text frame
-  Binary = 0x00000002,          ## denotes a binary frame
-  Close = 0x00000008,           ## denotes a connection close
-  Ping = 0x00000009,            ## denotes a ping
-  Pong = 0x0000000A             ## denotes a pong
-```
-
-## **proc** send
-
-This is the main method used to send data via this WebSocket.
-
-```nim
-proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void] {.async, raises: [WebSocketError], tags: [WriteIOEffect, ReadIOEffect].}
-```
-
-## **proc** receivePacket
-
-Wait for a string or binary packet to come in.
-
-```nim
-proc receivePacket(ws: WebSocket): Future[(Opcode, string)] {.async, raises: [WebSocketError].}
-```
-
-## **proc** receiveStrPacket
-
-Wait only for a string packet to come. Errors out on Binary packets.
-
-```nim
-proc receiveStrPacket(ws: WebSocket): Future[string] {.async, raises: [WebSocketError].}
-```
-
-## **proc** receiveBinaryPacket
-
-Wait only for a binary packet to come. Errors out on string packets.
-
-```nim
-proc receiveBinaryPacket(ws: WebSocket): Future[seq[byte]] {.async, raises: [WebSocketError].}
-```
-
-## **proc** ping
-
-Sends a ping to the other end, both server and client can send a ping. Data is optional.
-
-```nim
-proc ping(ws: WebSocket; data = "") {.async.}
-```
-
-## **proc** setupPings
-
-
-```nim
-proc setupPings(ws: WebSocket; seconds: float)
-```
-
-## **proc** hangup
-
-Closes the Socket without sending a close packet
-
-```nim
-proc hangup(ws: WebSocket) {.raises: [WebSocketError].}
-```
-
-## **proc** close
-
-Close the Socket, sends close packet.
-
-```nim
-proc close(ws: WebSocket)
 ```
