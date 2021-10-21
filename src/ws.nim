@@ -292,6 +292,9 @@ proc send*(
   ws: WebSocket, text: string, opcode = Opcode.Text
 ): Future[void] {.async.} =
   ## This is the main method used to send data via this WebSocket.
+  if ws.readyState != Open:
+    # Ignore calls to send on a closed socket.
+    return
   try:
     var frame = encodeFrame((
       fin: true,
@@ -312,11 +315,8 @@ proc send*(
       i += maxSize
       await sleepAsync(1)
   except Defect, IOError, OSError, ValueError:
-    # Wrap all exceptions in a WebSocketError so its easy to catch
-    raise newException(
-      WebSocketError,
-      "Failed to send data: " & getCurrentExceptionMsg()
-    )
+    # Don't throw exceptions just close the socket.
+    ws.readyState = Closed
 
 proc recvFrame(ws: WebSocket): Future[Frame] {.async.} =
   ## Gets a frame from the WebSocket.
