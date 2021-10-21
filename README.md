@@ -2,6 +2,16 @@
 
 # Simple WebSocket library for nim.
 
+`nimble install ws`
+
+![Github Actions](https://github.com/treeform/ws/workflows/Github%20Actions/badge.svg)
+
+[API reference](https://nimdocs.com/treeform/ws)
+
+This library has no dependencies other than the Nim standard libarary.
+
+## About
+
 I love webSockets. They are easy to use and supported everywhere. I use them instead of HTTP REST APIs. I find it much easier to think in terms of client/server messages then verbs and resource paths. Inevitably you want the server to notify the client when some thing changes. Inevitably you will use webSockets. Then you will have two systems. Stop the pain and just use plain webSockets from the start. Say no to REST.
 
 I recommend having only a webSocket server and host static html/js/css files some place like Amazon S3 or Google CloudStore. For HTTPS (or WSS in webSocket case) I usually wrap my webSocket server with Nginx with Let's Encrypt CertBot, and I also have just simply wrapped it with CloudFlare.
