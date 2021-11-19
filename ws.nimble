@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.4.4"
+version       = "0.5.0"
 author        = "Andre von Houck"
 description   = "Simple WebSocket library for nim."
 license       = "MIT"
