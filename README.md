@@ -31,7 +31,7 @@ Features:
 * Timeouts and Disconnects
 * SSL support
 * Jester support
-* Complaint: https://tools.ietf.org/html/rfc6455
+* Compliant with the [WebSocket protocol](https://tools.ietf.org/html/rfc6455).
 
 ### Documentation
 
