@@ -125,6 +125,7 @@ proc newWebSocket*(
 ): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
+  ## extra headers is optional
   var ws = WebSocket()
   ws.masked = true
   ws.tcpSocket = newAsyncSocket()
