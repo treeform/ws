@@ -109,14 +109,16 @@ var server = newAsyncHttpServer()
 waitFor server.serve(Port(9001), cb)
 ```
 
-In one tab:
+In one browser tab:
 ```js
+// JavaScript code:
 ws = new WebSocket("ws://localhost:9001/ws")
 ws.send("How are you?")
 ```
 
-Other tab:
+Other browser tab:
 ```js
+// JavaScript code:
 ws = new WebSocket("ws://localhost:9001/ws")
 ws.send("Good, you?")
 ```
@@ -126,11 +128,16 @@ ws.send("Good, you?")
 Instead of being the server you are the client connecting to some other server:
 
 ```nim
-var ws = await newWebSocket("ws://127.0.0.1:9001/ws")
-echo await ws.receiveStrPacket()
-await ws.send("Hi, how are you?")
-echo await ws.receiveStrPacket()
-ws.close()
+import asyncdispatch, asynchttpserver, ws
+
+proc main() {.async.} =
+  var ws = await newWebSocket("ws://127.0.0.1:9001/ws")
+  echo await ws.receiveStrPacket()
+  await ws.send("Hi, how are you?")
+  echo await ws.receiveStrPacket()
+  ws.close()
+
+waitFor main()
 ```
 
 SSL is also supported:
