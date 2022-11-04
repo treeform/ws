@@ -31,6 +31,6 @@ when useHttpBeast:
         "Failed to create WebSocket from request: " & getCurrentExceptionMsg()
       )
 
-proc newWebSocket*(req: jester.Request): Future[WebSocket] {.async.} =
+proc newWebSocket*(req: jester.Request, protocol: string = ""): Future[WebSocket] {.async.} =
   ## Creates a new socket from a jester request.
-  return await newWebSocket(req.getNativeReq())
+  return await newWebSocket(req.getNativeReq(), protocol)
