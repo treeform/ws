@@ -310,10 +310,11 @@ proc send*(
     # This really large packets.
     var i = 0
     while i < frame.len:
+      if i > 0:
+        await sleepAsync(1)
       let data = frame[i ..< min(frame.len, i + maxSize)]
       await ws.tcpSocket.send(data)
       i += maxSize
-      await sleepAsync(1)
   except Defect, IOError, OSError, ValueError:
     # Don't throw exceptions just close the socket.
     ws.readyState = Closed
