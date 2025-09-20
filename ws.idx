@@ -1,35 +1,37 @@
-Connecting	ws.html#Connecting	ReadyState.Connecting	
-Open	ws.html#Open	ReadyState.Open	
-Closing	ws.html#Closing	ReadyState.Closing	
-Closed	ws.html#Closed	ReadyState.Closed	
-ReadyState	ws.html#ReadyState	ws: ReadyState	
-WebSocket	ws.html#WebSocket	ws: WebSocket	
-WebSocketError	ws.html#WebSocketError	ws: WebSocketError	
-WebSocketClosedError	ws.html#WebSocketClosedError	ws: WebSocketClosedError	
-WebSocketCreationError	ws.html#WebSocketCreationError	ws: WebSocketCreationError	
-WebSocketPacketTypeError	ws.html#WebSocketPacketTypeError	ws: WebSocketPacketTypeError	
-WebSocketProtocolMismatchError	ws.html#WebSocketProtocolMismatchError	ws: WebSocketProtocolMismatchError	
-WebSocketFailedUpgradeError	ws.html#WebSocketFailedUpgradeError	ws: WebSocketFailedUpgradeError	
-WebSocketHandshakeError	ws.html#WebSocketHandshakeError	ws: WebSocketHandshakeError	
-decodeBase16	ws.html#decodeBase16,string	ws: decodeBase16(str: string): string	
-encodeBase16	ws.html#encodeBase16,string	ws: encodeBase16(str: string): string	
-toSeq	ws.html#toSeq,HttpHeaderValues	ws: toSeq(hv: HttpHeaderValues): seq[string]	
-handshake	ws.html#handshake,WebSocket,HttpHeaders	ws: handshake(ws: WebSocket; headers: HttpHeaders): owned(Future[void])	
-newWebSocket	ws.html#newWebSocket,Request,string	ws: newWebSocket(req: Request; protocol: string = &quot;&quot;): Future[WebSocket]	
-newWebSocket	ws.html#newWebSocket,string,seq[string]	ws: newWebSocket(url: string; protocols: seq[string] = @[]): Future[WebSocket]	
-newWebSocket	ws.html#newWebSocket,string,string	ws: newWebSocket(url: string; protocol: string): Future[WebSocket]	
-Cont	ws.html#Cont	Opcode.Cont	
-Text	ws.html#Text	Opcode.Text	
-Binary	ws.html#Binary	Opcode.Binary	
-Close	ws.html#Close	Opcode.Close	
-Ping	ws.html#Ping	Opcode.Ping	
-Pong	ws.html#Pong	Opcode.Pong	
-Opcode	ws.html#Opcode	ws: Opcode	
-send	ws.html#send,WebSocket,string	ws: send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void]	
-receivePacket	ws.html#receivePacket,WebSocket	ws: receivePacket(ws: WebSocket): Future[(Opcode, string)]	
-receiveStrPacket	ws.html#receiveStrPacket,WebSocket	ws: receiveStrPacket(ws: WebSocket): Future[string]	
-receiveBinaryPacket	ws.html#receiveBinaryPacket,WebSocket	ws: receiveBinaryPacket(ws: WebSocket): Future[seq[byte]]	
-ping	ws.html#ping,WebSocket,string	ws: ping(ws: WebSocket; data = &quot;&quot;): owned(Future[void])	
-setupPings	ws.html#setupPings,WebSocket,float	ws: setupPings(ws: WebSocket; seconds: float)	
-hangup	ws.html#hangup,WebSocket	ws: hangup(ws: WebSocket)	
-close	ws.html#close,WebSocket	ws: close(ws: WebSocket)	
+nimTitle	ws	ws.html	module src/ws		0
+nim	Connecting	ws.html#Connecting	ReadyState.Connecting		5
+nim	Open	ws.html#Open	ReadyState.Open		5
+nim	Closing	ws.html#Closing	ReadyState.Closing		5
+nim	Closed	ws.html#Closed	ReadyState.Closed		5
+nim	ReadyState	ws.html#ReadyState	enum ReadyState		5
+nim	WebSocket	ws.html#WebSocket	type WebSocket		11
+nim	WebSocketError	ws.html#WebSocketError	object WebSocketError		19
+nim	WebSocketClosedError	ws.html#WebSocketClosedError	object WebSocketClosedError		20
+nim	WebSocketCreationError	ws.html#WebSocketCreationError	object WebSocketCreationError		21
+nim	WebSocketPacketTypeError	ws.html#WebSocketPacketTypeError	object WebSocketPacketTypeError		22
+nim	WebSocketProtocolMismatchError	ws.html#WebSocketProtocolMismatchError	object WebSocketProtocolMismatchError		23
+nim	WebSocketFailedUpgradeError	ws.html#WebSocketFailedUpgradeError	object WebSocketFailedUpgradeError		24
+nim	WebSocketHandshakeError	ws.html#WebSocketHandshakeError	object WebSocketHandshakeError		25
+nim	decodeBase16	ws.html#decodeBase16,string	proc decodeBase16(str: string): string		48
+nim	encodeBase16	ws.html#encodeBase16,string	proc encodeBase16(str: string): string		56
+nim	toSeq	ws.html#toSeq,HttpHeaderValues	proc toSeq(hv: HttpHeaderValues): seq[string]		68
+nim	handshake	ws.html#handshake,WebSocket,HttpHeaders	proc handshake(ws: WebSocket; headers: HttpHeaders): owned(Future[void])		72
+nim	newWebSocket	ws.html#newWebSocket,Request,string	proc newWebSocket(req: Request; protocol: string = ""): Future[WebSocket]		101
+nim	newWebSocket	ws.html#newWebSocket,string,seq[string]	proc newWebSocket(url: string; protocols: seq[string] = @[]): Future[WebSocket]		124
+nim	newWebSocket	ws.html#newWebSocket,string,string	proc newWebSocket(url: string; protocol: string): Future[WebSocket]		187
+nim	Cont	ws.html#Cont	Opcode.Cont		191
+nim	Text	ws.html#Text	Opcode.Text		191
+nim	Binary	ws.html#Binary	Opcode.Binary		191
+nim	Close	ws.html#Close	Opcode.Close		191
+nim	Ping	ws.html#Ping	Opcode.Ping		191
+nim	Pong	ws.html#Pong	Opcode.Pong		191
+nim	Opcode	ws.html#Opcode	enum Opcode		191
+nim	send	ws.html#send,WebSocket,string	proc send(ws: WebSocket; text: string; opcode = Opcode.Text): Future[void]		293
+nim	receivePacket	ws.html#receivePacket,WebSocket	proc receivePacket(ws: WebSocket): Future[(Opcode, string)]		402
+nim	receiveStrPacket	ws.html#receiveStrPacket,WebSocket	proc receiveStrPacket(ws: WebSocket): Future[string]		415
+nim	receiveBinaryPacket	ws.html#receiveBinaryPacket,WebSocket	proc receiveBinaryPacket(ws: WebSocket): Future[seq[byte]]		436
+nim	ping	ws.html#ping,WebSocket,string	proc ping(ws: WebSocket; data = ""): owned(Future[void])		457
+nim	setupPings	ws.html#setupPings,WebSocket,float	proc setupPings(ws: WebSocket; seconds: float)		462
+nim	hangup	ws.html#hangup,WebSocket	proc hangup(ws: WebSocket)		470
+nim	close	ws.html#close,WebSocket	proc close(ws: WebSocket)		481
+nimgrp	newwebsocket	ws.html#newWebSocket-procs-all	proc		98
