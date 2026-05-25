@@ -1,4 +1,4 @@
-nimTitle	ws	ws.html	module src/ws		0
+nimTitle	ws	ws.html	module ws		0
 nim	Connecting	ws.html#Connecting	ReadyState.Connecting		5
 nim	Open	ws.html#Open	ReadyState.Open		5
 nim	Closing	ws.html#Closing	ReadyState.Closing		5

@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>src/ws</title>
+<title>ws</title>
 
 <!-- Google fonts -->
 <link href='https://fonts.googleapis.com/css?family=Lato:400,600,900' rel='stylesheet' type='text/css'/>
@@ -16,15 +16,18 @@
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4QQQEwksSS9ZWwAAAk1JREFUWMPtll2ITVEUx39nn/O7Y5qR8f05wtCUUr6ZIS++8pEnkZInPImneaCQ5METNdOkeFBKUhMPRIkHKfEuUZSUlGlKPN2TrgfncpvmnntnmlEyq1Z7t89/rf9a6+y99oZxGZf/XeIq61EdtgKXgdXA0xrYAvBjOIF1AI9zvjcC74BSpndrJPkBWDScTF8Aa4E3wDlgHbASaANmVqlcCnwHvgDvgVfAJ+AikAAvgfVZwLnSVZHZaOuKoQi3ZOMi4NkYkpe1p4J7A8BpYAD49hfIy/oqG0+hLomiKP2L5L+1ubn5115S+3OAn4EnwBlgMzCjyt6ZAnQCJ4A7wOs88iRJHvw50HoujuPBoCKwHWiosy8MdfZnAdcHk8dxXFJ3VQbQlCTJvRBCGdRbD4M6uc5glpY3eAihpN5S5w12diSEcCCEcKUO4ljdr15T76ur1FDDLIQQ3qv71EdDOe3Kxj3leRXyk+pxdWnFWod6Wt2bY3de3aSuUHcPBVimHs7mK9WrmeOF6lR1o9qnzskh2ar2qm1qizpfXaPeVGdlmGN5pb09qMxz1Xb1kLqgzn1RyH7JUXW52lr5e/Kqi9qpto7V1atuUzfnARrV7jEib1T76gG2qxdGmXyiekkt1GswPTtek0aBfJp6YySGBfWg2tPQ0FAYgf1stUfdmdcjarbYJEniKIq6gY/Aw+zWHAC+p2labGpqiorFYgGYCEzN7oQdQClN07O1/EfDyGgC0ALMBdYAi4FyK+4H3gLPsxfR1zRNi+NP7nH5J+QntnXe5B5mpfQAAAAASUVORK5CYII=">
 
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="nimdoc.out.css?v=2.2.4">
+<link rel="stylesheet" type="text/css" href="nimdoc.out.css?v=2.2.10">
 
 <!-- JS -->
-<script type="text/javascript" src="dochack.js?v=2.2.4"></script>
+<script type="text/javascript" src="dochack.js?v=2.2.10"></script>
 </head>
 <body>
   <div class="document" id="documentId">
+    <input type="checkbox" id="nav-toggle" hidden>
+    <label for="nav-toggle" id="nav-burger">&#9776;</label>
+    <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
-      <h1 class="title">src/ws</h1>
+      <h1 class="title">ws</h1>
       <div class="row">
   <div class="three columns">
     <div class="theme-select-wrapper">
@@ -159,7 +162,7 @@
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
     <div id="Opcode">
-  <dt><pre><a href="ws.html#Opcode"><span class="Identifier">Opcode</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <dt><pre><a href="#Opcode"><span class="Identifier">Opcode</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
   <span class="Identifier">Cont</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">,</span>                 <span class="Comment">## Denotes a continuation frame.</span>
   <span class="Identifier">Text</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">,</span>                 <span class="Comment">## Denotes a text frame.</span>
   <span class="Identifier">Binary</span> <span class="Other">=</span> <span class="DecNumber">2</span><span class="Other">,</span>               <span class="Comment">## Denotes a binary frame.</span>
@@ -175,7 +178,7 @@
   </dd>
 </div>
 <div id="ReadyState">
-  <dt><pre><a href="ws.html#ReadyState"><span class="Identifier">ReadyState</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <dt><pre><a href="#ReadyState"><span class="Identifier">ReadyState</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
   <span class="Identifier">Connecting</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">,</span> <span class="Identifier">Open</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="Identifier">Closing</span> <span class="Other">=</span> <span class="DecNumber">2</span><span class="Other">,</span> <span class="Identifier">Closed</span> <span class="Other">=</span> <span class="DecNumber">3</span></pre></dt>
   <dd>
     
@@ -186,12 +189,12 @@
   </dd>
 </div>
 <div id="WebSocket">
-  <dt><pre><a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#WebSocket"><span class="Identifier">WebSocket</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">tcpSocket</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">AsyncSocket</span>
   <span class="Identifier">version</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
   <span class="Identifier">key</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">protocol</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-  <span class="Identifier">readyState</span><span class="Operator">*</span><span class="Other">:</span> <a href="ws.html#ReadyState"><span class="Identifier">ReadyState</span></a>
+  <span class="Identifier">readyState</span><span class="Operator">*</span><span class="Other">:</span> <a href="#ReadyState"><span class="Identifier">ReadyState</span></a>
   <span class="Identifier">masked</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
   <dd>
     
@@ -202,7 +205,7 @@
   </dd>
 </div>
 <div id="WebSocketClosedError">
-  <dt><pre><a href="ws.html#WebSocketClosedError"><span class="Identifier">WebSocketClosedError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketClosedError"><span class="Identifier">WebSocketClosedError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -212,7 +215,7 @@
   </dd>
 </div>
 <div id="WebSocketCreationError">
-  <dt><pre><a href="ws.html#WebSocketCreationError"><span class="Identifier">WebSocketCreationError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketCreationError"><span class="Identifier">WebSocketCreationError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -222,7 +225,7 @@
   </dd>
 </div>
 <div id="WebSocketError">
-  <dt><pre><a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">IOError</span></pre></dt>
+  <dt><pre><a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">IOError</span></pre></dt>
   <dd>
     
     
@@ -232,7 +235,7 @@
   </dd>
 </div>
 <div id="WebSocketFailedUpgradeError">
-  <dt><pre><a href="ws.html#WebSocketFailedUpgradeError"><span class="Identifier">WebSocketFailedUpgradeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketFailedUpgradeError"><span class="Identifier">WebSocketFailedUpgradeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -242,7 +245,7 @@
   </dd>
 </div>
 <div id="WebSocketHandshakeError">
-  <dt><pre><a href="ws.html#WebSocketHandshakeError"><span class="Identifier">WebSocketHandshakeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketHandshakeError"><span class="Identifier">WebSocketHandshakeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -252,7 +255,7 @@
   </dd>
 </div>
 <div id="WebSocketPacketTypeError">
-  <dt><pre><a href="ws.html#WebSocketPacketTypeError"><span class="Identifier">WebSocketPacketTypeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketPacketTypeError"><span class="Identifier">WebSocketPacketTypeError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -262,7 +265,7 @@
   </dd>
 </div>
 <div id="WebSocketProtocolMismatchError">
-  <dt><pre><a href="ws.html#WebSocketProtocolMismatchError"><span class="Identifier">WebSocketProtocolMismatchError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="ws.html#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
+  <dt><pre><a href="#WebSocketProtocolMismatchError"><span class="Identifier">WebSocketProtocolMismatchError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="#WebSocketError"><span class="Identifier">WebSocketError</span></a></pre></dt>
   <dd>
     
     
@@ -279,7 +282,7 @@
   <dl class="item">
     <div id="close-procs-all">
   <div id="close,WebSocket">
-  <dt><pre><span class="Keyword">proc</span> <a href="#close%2CWebSocket"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#close%2CWebSocket"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span>
                                      <span class="Identifier">LibraryError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span>
     <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -320,7 +323,7 @@
 </div>
 <div id="handshake-procs-all">
   <div id="handshake,WebSocket,HttpHeaders">
-  <dt><pre><span class="Keyword">proc</span> <a href="#handshake%2CWebSocket%2CHttpHeaders"><span class="Identifier">handshake</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">headers</span><span class="Other">:</span> <span class="Identifier">HttpHeaders</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">owned</span><span class="Other">(</span><span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span><span class="Other">)</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#handshake%2CWebSocket%2CHttpHeaders"><span class="Identifier">handshake</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">headers</span><span class="Other">:</span> <span class="Identifier">HttpHeaders</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">owned</span><span class="Other">(</span><span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">,</span>
                                 <span class="Identifier">WebSocketProtocolMismatchError</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
@@ -336,7 +339,7 @@
 </div>
 <div id="hangup-procs-all">
   <div id="hangup,WebSocket">
-  <dt><pre><span class="Keyword">proc</span> <a href="#hangup%2CWebSocket"><span class="Identifier">hangup</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WebSocketError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#hangup%2CWebSocket"><span class="Identifier">hangup</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WebSocketError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span>
                              <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -350,7 +353,7 @@
 </div>
 <div id="newWebSocket-procs-all">
   <div id="newWebSocket,Request,string">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2CRequest%2Cstring"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">;</span> <span class="Identifier">protocol</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2CRequest%2Cstring"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">;</span> <span class="Identifier">protocol</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">WebSocketHandshakeError</span><span class="Other">,</span>
                                 <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">WebSocketProtocolMismatchError</span><span class="Other">,</span>
                                 <span class="Identifier">WebSocketCreationError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span>
@@ -364,7 +367,7 @@
   </dd>
 </div>
 <div id="newWebSocket,string,string">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2Cstring%2Cstring"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">url</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">protocol</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2Cstring%2Cstring"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">url</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">protocol</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">WebSocketError</span><span class="Other">,</span>
                                 <span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">HttpRequestError</span><span class="Other">,</span> <span class="Identifier">LibraryError</span><span class="Other">,</span>
                                 <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ProtocolError</span><span class="Other">,</span>
@@ -380,7 +383,7 @@
   </dd>
 </div>
 <div id="newWebSocket,string,seq[string]">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2Cstring%2Cseq%5Bstring%5D"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">url</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">protocols</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#newWebSocket%2Cstring%2Cseq%5Bstring%5D"><span class="Identifier">newWebSocket</span></a><span class="Other">(</span><span class="Identifier">url</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">protocols</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">]</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">WebSocketError</span><span class="Other">,</span>
                                 <span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">HttpRequestError</span><span class="Other">,</span> <span class="Identifier">LibraryError</span><span class="Other">,</span>
                                 <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ProtocolError</span><span class="Other">,</span>
@@ -399,7 +402,7 @@
 </div>
 <div id="ping-procs-all">
   <div id="ping,WebSocket,string">
-  <dt><pre><span class="Keyword">proc</span> <a href="#ping%2CWebSocket%2Cstring"><span class="Identifier">ping</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">data</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">owned</span><span class="Other">(</span><span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#ping%2CWebSocket%2Cstring"><span class="Identifier">ping</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">data</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">owned</span><span class="Other">(</span><span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span>
     <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -414,7 +417,7 @@
 </div>
 <div id="receiveBinaryPacket-procs-all">
   <div id="receiveBinaryPacket,WebSocket">
-  <dt><pre><span class="Keyword">proc</span> <a href="#receiveBinaryPacket%2CWebSocket"><span class="Identifier">receiveBinaryPacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#receiveBinaryPacket%2CWebSocket"><span class="Identifier">receiveBinaryPacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
     <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">WebSocketClosedError</span><span class="Other">,</span> <span class="Identifier">WebSocketError</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span>
     <span class="Identifier">WebSocketPacketTypeError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
@@ -430,7 +433,7 @@
 </div>
 <div id="receivePacket-procs-all">
   <div id="receivePacket,WebSocket">
-  <dt><pre><span class="Keyword">proc</span> <a href="#receivePacket%2CWebSocket"><span class="Identifier">receivePacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Other">(</span><a href="ws.html#Opcode"><span class="Identifier">Opcode</span></a><span class="Other">,</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#receivePacket%2CWebSocket"><span class="Identifier">receivePacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Other">(</span><a href="#Opcode"><span class="Identifier">Opcode</span></a><span class="Other">,</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
     <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">WebSocketClosedError</span><span class="Other">,</span> <span class="Identifier">WebSocketError</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -445,7 +448,7 @@
 </div>
 <div id="receiveStrPacket-procs-all">
   <div id="receiveStrPacket,WebSocket">
-  <dt><pre><span class="Keyword">proc</span> <a href="#receiveStrPacket%2CWebSocket"><span class="Identifier">receiveStrPacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#receiveStrPacket%2CWebSocket"><span class="Identifier">receiveStrPacket</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span>
     <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">WebSocketClosedError</span><span class="Other">,</span> <span class="Identifier">WebSocketError</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span>
     <span class="Identifier">WebSocketPacketTypeError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
@@ -461,7 +464,7 @@
 </div>
 <div id="send-procs-all">
   <div id="send,WebSocket,string">
-  <dt><pre><span class="Keyword">proc</span> <a href="#send%2CWebSocket%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opcode</span> <span class="Other">=</span> <a href="ws.html#Opcode"><span class="Identifier">Opcode</span></a><span class="Other">.</span><span class="Identifier">Text</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#send%2CWebSocket%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opcode</span> <span class="Other">=</span> <a href="#Opcode"><span class="Identifier">Opcode</span></a><span class="Other">.</span><span class="Identifier">Text</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">stackTrace</span><span class="Other">:</span> <span class="DecNumber">false</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -476,7 +479,7 @@
 </div>
 <div id="setupPings-procs-all">
   <div id="setupPings,WebSocket,float">
-  <dt><pre><span class="Keyword">proc</span> <a href="#setupPings%2CWebSocket%2Cfloat"><span class="Identifier">setupPings</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="ws.html#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">seconds</span><span class="Other">:</span> <span class="Identifier">float</span><span class="Other">)</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#setupPings%2CWebSocket%2Cfloat"><span class="Identifier">setupPings</span></a><span class="Other">(</span><span class="Identifier">ws</span><span class="Other">:</span> <a href="#WebSocket"><span class="Identifier">WebSocket</span></a><span class="Other">;</span> <span class="Identifier">seconds</span><span class="Other">:</span> <span class="Identifier">float</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">SslError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -513,7 +516,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-20 03:18:05 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-05-25 04:12:11 UTC</small>
       </div>
     </div>
   </div>
