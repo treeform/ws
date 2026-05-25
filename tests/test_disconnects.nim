@@ -13,13 +13,15 @@ proc gameLoop(){.async.} =
 
 proc serverCb(req: Request) {.async, gcsafe.} =
   try:
-    curWs = await newWebSocket(req)
-    await curWs.send("Welcome to simple echo server")
-    while curWs.readyState == Open:
+    let ws = await newWebSocket(req)
+    {.gcsafe.}:
+      curWs = ws
+    await ws.send("Welcome to simple echo server")
+    while ws.readyState == Open:
       echo "reading..."
-      let packet = await curWs.receivePacket()
+      let packet = await ws.receivePacket()
       echo "sending..."
-      await curWs.send($packet)
+      await ws.send($packet)
   except WebSocketError:
     echo "serverCb exception:", getCurrentExceptionMsg().split("\n")[0]
 
